@@ -1,75 +1,42 @@
 // ** Icon imports
-import Login from "mdi-material-ui/Login";
-import Table from "mdi-material-ui/Table";
-import CubeOutline from "mdi-material-ui/CubeOutline";
-import HomeOutline from "mdi-material-ui/HomeOutline";
-import FormatLetterCase from "mdi-material-ui/FormatLetterCase";
-import AccountCogOutline from "mdi-material-ui/AccountCogOutline";
-import CreditCardOutline from "mdi-material-ui/CreditCardOutline";
-import AccountPlusOutline from "mdi-material-ui/AccountPlusOutline";
-import AlertCircleOutline from "mdi-material-ui/AlertCircleOutline";
-import GoogleCirclesExtended from "mdi-material-ui/GoogleCirclesExtended";
+import HomeIcon from "@mui/icons-material/Home";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 
 const navigation = () => {
   return [
     {
       title: "Dashboard",
-      icon: HomeOutline,
-      path: "/",
+      icon: HomeIcon,
+      path: "/admin",
     },
     {
-      title: "Account Settings",
-      icon: AccountCogOutline,
-      path: "/account-settings",
+      title: "Profile",
+      icon: AdminPanelSettingsIcon,
+      path: "/admin/profile",
     },
     {
-      sectionTitle: "Pages",
+      sectionTitle: "Management Pertanyaan",
     },
     {
-      title: "Login",
-      icon: Login,
-      path: "/pages/login",
-      openInNewTab: true,
+      title: "Pertanyaan",
+      icon: RequestQuoteIcon,
+      path: "/admin/quest",
     },
     {
-      title: "Register",
-      icon: AccountPlusOutline,
-      path: "/pages/register",
-      openInNewTab: true,
+      sectionTitle: "Management User",
     },
     {
-      title: "Error",
-      icon: AlertCircleOutline,
-      path: "/pages/error",
-      openInNewTab: true,
+      title: "User",
+      icon: PeopleAltIcon,
+      path: "/admin/user",
     },
     {
-      sectionTitle: "User Interface",
-    },
-    {
-      title: "Typography",
-      icon: FormatLetterCase,
-      path: "/typography",
-    },
-    {
-      title: "Icons",
-      path: "/icons",
-      icon: GoogleCirclesExtended,
-    },
-    {
-      title: "Cards",
-      icon: CreditCardOutline,
-      path: "/cards",
-    },
-    {
-      title: "Tables",
-      icon: Table,
-      path: "/tables",
-    },
-    {
-      title: "Form Layouts",
-      icon: CubeOutline,
-      path: "/form-layouts",
+      title: "Tambah User",
+      icon: PersonAddIcon,
+      path: "/admin/user/add",
     },
   ];
 };

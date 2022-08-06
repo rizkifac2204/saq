@@ -1,101 +1,215 @@
-// ** MUI Imports
-import Grid from "@mui/material/Grid";
+// ** React Imports
+import { useState } from "react";
+
+import { useFormik } from "formik";
+import * as yup from "yup";
+import { toast } from "react-toastify";
+import axios from "axios";
+
+// ** Next Imports
+import { useRouter } from "next/router";
+import Image from "next/image";
+
+// ** MUI Components
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Checkbox from "@mui/material/Checkbox";
+import TextField from "@mui/material/TextField";
+import InputLabel from "@mui/material/InputLabel";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import CardContent from "@mui/material/CardContent";
+import FormControl from "@mui/material/FormControl";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import { styled } from "@mui/material/styles";
+import MuiCard from "@mui/material/Card";
+import InputAdornment from "@mui/material/InputAdornment";
+import MuiFormControlLabel from "@mui/material/FormControlLabel";
 
 // ** Icons Imports
-import Poll from "mdi-material-ui/Poll";
-import CurrencyUsd from "mdi-material-ui/CurrencyUsd";
-import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
-import BriefcaseVariantOutline from "mdi-material-ui/BriefcaseVariantOutline";
+import EyeOutline from "mdi-material-ui/EyeOutline";
+import EyeOffOutline from "mdi-material-ui/EyeOffOutline";
 
-// ** Custom Components Imports
-import CardStatisticsVerticalComponent from "src/@core/components/card-statistics/card-stats-vertical";
+// ** Configs
+import themeConfig from "src/configs/themeConfig";
 
-// ** Styled Component Import
-import ApexChartWrapper from "src/@core/styles/libs/react-apexcharts";
+// ** Layout Import
+import BlankLayout from "src/@core/layouts/BlankLayout";
+import { FlaskEmpty } from "mdi-material-ui";
 
-// ** Demo Components Imports
-import Table from "src/views/dashboard/Table";
-import Trophy from "src/views/dashboard/Trophy";
-import TotalEarning from "src/views/dashboard/TotalEarning";
-import StatisticsCard from "src/views/dashboard/StatisticsCard";
-import WeeklyOverview from "src/views/dashboard/WeeklyOverview";
-import DepositWithdraw from "src/views/dashboard/DepositWithdraw";
-import SalesByCountries from "src/views/dashboard/SalesByCountries";
+// ** Styled Components
+const Card = styled(MuiCard)(({ theme }) => ({
+  [theme.breakpoints.up("sm")]: { width: "28rem" },
+}));
 
-const Dashboard = () => {
+const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
+  "& .MuiFormControlLabel-label": {
+    fontSize: "0.875rem",
+    color: theme.palette.text.secondary,
+  },
+}));
+
+const validationSchema = yup.object({
+  username: yup.string("Masukan Username").required("Harus Diisi"),
+  password: yup.string("Masukan password").required("Password Harus Diisi"),
+});
+
+const LoginPage = () => {
+  // ** State
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = (values, setSubmitting) => {
+    const toastProses = toast.loading("Tunggu Sebentar...", {
+      autoClose: false,
+    });
+    axios
+      .post(`/api/auth/loginCredential`, values)
+      .then((res) => {
+        // console.log(res);
+        toast.update(toastProses, {
+          render: `${res.data.message}, Mengalihkan Halaman`,
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
+        router.push("/admin");
+      })
+      .catch((err) => {
+        console.log(err.response);
+        const msg = err.response.data.message
+          ? err.response.data.message
+          : "Terjadi Kesalahan";
+        toast.update(toastProses, {
+          render: msg,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      })
+      .then(() => {
+        setSubmitting(false);
+      });
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: (values, { setSubmitting }) =>
+      handleSubmit(values, setSubmitting),
+  });
+
   return (
-    <ApexChartWrapper>
-      <Grid container spacing={6}>
-        <Grid item xs={12} md={4}>
-          <Trophy />
-        </Grid>
-        <Grid item xs={12} md={8}>
-          <StatisticsCard />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <WeeklyOverview />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <TotalEarning />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <Grid container spacing={6}>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats="$25.6k"
-                icon={<Poll />}
-                color="success"
-                trendNumber="+42%"
-                title="Total Profit"
-                subtitle="Weekly Profit"
+    <Box className="content-center">
+      <Card sx={{ zIndex: 1 }}>
+        <CardContent
+          sx={{ padding: (theme) => `${theme.spacing(12, 9, 7)} !important` }}
+        >
+          <Box
+            sx={{
+              mb: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Image alt="" src="/logo.png" width={30} height={25} />
+            <Typography
+              variant="h6"
+              sx={{
+                ml: 3,
+                lineHeight: 1,
+                fontWeight: 600,
+                textTransform: "uppercase",
+                fontSize: "1.5rem !important",
+              }}
+            >
+              {themeConfig.templateName}
+            </Typography>
+          </Box>
+          <Box sx={{ mb: 6 }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 600, marginBottom: 1.5 }}
+            >
+              Selamat Datang di {themeConfig.templateName}!
+            </Typography>
+            <Typography variant="body2">
+              Silakan Masukan Username dan Password Anda
+            </Typography>
+          </Box>
+          <form noValidate autoComplete="off" onSubmit={formik.handleSubmit}>
+            <TextField
+              autoFocus
+              fullWidth
+              name="username"
+              id="username"
+              label="Username"
+              sx={{ marginBottom: 4 }}
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
+            />
+            <FormControl fullWidth>
+              <InputLabel htmlFor="auth-login-password">Password</InputLabel>
+              <OutlinedInput
+                label="Password"
+                name="password"
+                value={formik.values.password}
+                id="auth-login-password"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                type={showPassword ? "text" : "password"}
+                error={
+                  formik.touched.password && Boolean(formik.errors.password)
+                }
+                endAdornment={
+                  <InputAdornment position="end">
+                    <IconButton
+                      edge="end"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="toggle password visibility"
+                    >
+                      {showPassword ? <EyeOutline /> : <EyeOffOutline />}
+                    </IconButton>
+                  </InputAdornment>
+                }
               />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats="$78"
-                title="Refunds"
-                trend="negative"
-                color="secondary"
-                trendNumber="-15%"
-                subtitle="Past Month"
-                icon={<CurrencyUsd />}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats="862"
-                trend="negative"
-                trendNumber="-18%"
-                title="New Project"
-                subtitle="Yearly Project"
-                icon={<BriefcaseVariantOutline />}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <CardStatisticsVerticalComponent
-                stats="15"
-                color="warning"
-                trend="negative"
-                trendNumber="-18%"
-                subtitle="Last Week"
-                title="Sales Queries"
-                icon={<HelpCircleOutline />}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <SalesByCountries />
-        </Grid>
-        <Grid item xs={12} md={12} lg={8}>
-          <DepositWithdraw />
-        </Grid>
-        <Grid item xs={12}>
-          <Table />
-        </Grid>
-      </Grid>
-    </ApexChartWrapper>
+            </FormControl>
+            <Box
+              sx={{
+                mb: 4,
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+              }}
+            >
+              <FormControlLabel control={<Checkbox />} label="Remember Me" />
+            </Box>
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              sx={{ marginBottom: 7 }}
+              type="submit"
+              disabled={formik.isSubmitting}
+            >
+              Login
+            </Button>
+            <Divider sx={{ my: 5 }}>Bawaslu Republik Indonesia</Divider>
+          </form>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
+LoginPage.getLayout = (page) => <BlankLayout>{page}</BlankLayout>;
 
-export default Dashboard;
+export default LoginPage;

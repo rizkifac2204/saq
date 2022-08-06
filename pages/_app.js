@@ -5,6 +5,10 @@ import { Router } from "next/router";
 // ** Loader Import
 import NProgress from "nprogress";
 
+// ** Toastify
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // ** Emotion Imports
 import { CacheProvider } from "@emotion/react";
 
@@ -29,6 +33,9 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 
 // ** Global css styles
 import "../styles/globals.css";
+
+// ** Auth
+import { AuthContextProvider } from "context/AuthContext";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -55,6 +62,7 @@ const App = (props) => {
 
   return (
     <CacheProvider value={emotionCache}>
+      <ToastContainer />
       <Head>
         <title>{`${themeConfig.templateName} - Bawaslu`}</title>
         <meta
@@ -73,7 +81,9 @@ const App = (props) => {
           {({ settings }) => {
             return (
               <ThemeComponent settings={settings}>
-                {getLayout(<Component {...pageProps} />)}
+                <AuthContextProvider>
+                  {getLayout(<Component {...pageProps} />)}
+                </AuthContextProvider>
               </ThemeComponent>
             );
           }}

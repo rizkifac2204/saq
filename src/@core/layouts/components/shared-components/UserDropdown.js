@@ -1,8 +1,10 @@
 // ** React Imports
-import { useState, Fragment } from "react";
+import { useState, Fragment, useContext } from "react";
+import AuthContext from "context/AuthContext";
 
 // ** Next Import
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 // ** MUI Imports
 import Box from "@mui/material/Box";
@@ -15,13 +17,8 @@ import { styled } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 
 // ** Icons Imports
-import CogOutline from "mdi-material-ui/CogOutline";
-import CurrencyUsd from "mdi-material-ui/CurrencyUsd";
-import EmailOutline from "mdi-material-ui/EmailOutline";
 import LogoutVariant from "mdi-material-ui/LogoutVariant";
 import AccountOutline from "mdi-material-ui/AccountOutline";
-import MessageOutline from "mdi-material-ui/MessageOutline";
-import HelpCircleOutline from "mdi-material-ui/HelpCircleOutline";
 
 // ** Styled Components
 const BadgeContentSpan = styled("span")(({ theme }) => ({
@@ -33,6 +30,8 @@ const BadgeContentSpan = styled("span")(({ theme }) => ({
 }));
 
 const UserDropdown = () => {
+  const { logout } = useContext(AuthContext);
+
   // ** States
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -121,47 +120,15 @@ const UserDropdown = () => {
         </Box>
         <Divider sx={{ mt: 0, mb: 1 }} />
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <AccountOutline sx={{ marginRight: 2 }} />
-            Profile
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <EmailOutline sx={{ marginRight: 2 }} />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <MessageOutline sx={{ marginRight: 2 }} />
-            Chat
-          </Box>
+          <Link href="/admin/profile">
+            <Box sx={styles}>
+              <AccountOutline sx={{ marginRight: 2 }} />
+              Profile
+            </Box>
+          </Link>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <CogOutline sx={{ marginRight: 2 }} />
-            Settings
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <CurrencyUsd sx={{ marginRight: 2 }} />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <HelpCircleOutline sx={{ marginRight: 2 }} />
-            FAQ
-          </Box>
-        </MenuItem>
-        <Divider />
-        <MenuItem
-          sx={{ py: 2 }}
-          onClick={() => handleDropdownClose("/pages/login")}
-        >
+        <MenuItem sx={{ py: 2 }} onClick={logout}>
           <LogoutVariant
             sx={{
               marginRight: 2,
