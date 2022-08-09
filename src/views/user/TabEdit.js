@@ -28,24 +28,19 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 
 // ** Icons Imports
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import EyeOutline from "mdi-material-ui/EyeOutline";
 import EyeOffOutline from "mdi-material-ui/EyeOffOutline";
 
-const level = [
-  { level: 1, nama_level: "Super Admin" },
-  { level: 2, nama_level: "Admin" },
-  { level: 3, nama_level: "User Provinsi" },
-];
-
-const handleSubmit = (values, setSubmitting) => {
+const handleSubmit = (values, setDetail, setSubmitting) => {
   const toastProses = toast.loading("Tunggu Sebentar...", {
     autoClose: false,
   });
   axios
-    .post(`/api/user`, values)
+    .put(`/api/user/${values.id}`, values)
     .then((res) => {
-      // console.log(res.data);
+      console.log(res.data);
+      setDetail({ ...values });
       toast.update(toastProses, {
         render: res.data.message,
         type: "success",
@@ -76,7 +71,6 @@ const handleSubmit = (values, setSubmitting) => {
 
 const validationSchema = yup.object({
   // required
-  level: yup.number("Pilih Role/Level").required("Harus Dipilih"),
   nama: yup.string("Masukan Nama").required("Harus Diisi"),
   wilayah: yup.array().when("level", {
     is: (level) => level == 2,
@@ -89,13 +83,13 @@ const validationSchema = yup.object({
     otherwise: yup.number(),
   }),
   username: yup.string().required("Username Harus Diisi"),
-  password: yup.string().required("Password Harus Diisi"),
+  passwordBaru: yup.string().required("Password Harus Diisi"),
   passwordConfirm: yup
     .string()
     .required("Konfirmasi Password Harus Diisi")
-    .oneOf([yup.ref("password"), null], "Passwords Tidak Sama"),
+    .oneOf([yup.ref("passwordBaru"), null], "Passwords Tidak Sama"),
 
-  // tidak harus tadpi tetap di validasi
+  // tidak harus tapi tetap di validasi
   email: yup.string("Masukan Email").email("Email Tidak Valid"),
   bp_website: yup
     .string()
@@ -107,9 +101,11 @@ const validationSchema = yup.object({
   ppid_email: yup.string("Masukan Email").email("Email Tidak Valid"),
 });
 
-const UserAdd = () => {
-  const { user } = useContext(AuthContext);
-  // ** States
+const TabEdit = (props) => {
+  const { detail, setDetail } = props;
+  if (!detail)
+    return <Skeleton variant="rectangular" width={"100%"} height={118} />;
+
   const [show, setShow] = useState({
     showNewPassword: false,
     showCurrentPassword: false,
@@ -144,50 +140,18 @@ const UserAdd = () => {
 
   const formik = useFormik({
     initialValues: {
-      level: "",
-      wilayah: [],
-      provinsi_id: "",
-      nama: "",
-      telp: "",
-      email: "",
-      jabatan: "",
-      bp: "",
-      bp_website: "",
-      bp_email: "",
-      bp_fax: "",
-      bp_alamat: "",
-      ppid_nama: "",
-      ppid_email: "",
-      ppid_telp: "",
-      username: "",
-      password: "",
+      ...detail,
+      wilayah: detail.daftarWilayah
+        ? detail.daftarWilayah.map((a) => a.provinsi)
+        : [],
+      passwordBaru: "",
       passwordConfirm: "",
     },
     enableReinitialize: true,
     validationSchema: validationSchema,
     onSubmit: (values, { setSubmitting }) =>
-      handleSubmit(values, setSubmitting),
+      handleSubmit(values, setDetail, setSubmitting),
   });
-
-  useEffect(() => {
-    if (!formik.values.level) return;
-    formik.setFieldValue("wilayah", []);
-    formik.setFieldValue("provinsi_id", "");
-    formik.setFieldValue("telp", "");
-    formik.setFieldValue("email", "");
-    formik.setFieldValue("jabatan", "");
-    formik.setFieldValue("bp", "");
-    formik.setFieldValue("bp_website", "");
-    formik.setFieldValue("bp_email", "");
-    formik.setFieldValue("bp_fax", "");
-    formik.setFieldValue("bp_alamat", "");
-    formik.setFieldValue("ppid_nama", "");
-    formik.setFieldValue("ppid_email", "");
-    formik.setFieldValue("ppid_telp", "");
-  }, [formik.values.level]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!user)
-    return <Skeleton variant="rectangular" width={"100%"} height={118} />;
 
   return (
     <Card>
@@ -196,11 +160,11 @@ const UserAdd = () => {
           <Grid container spacing={7}>
             <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <PersonAddIcon sx={{ fontSize: "2.75rem", mr: 3 }} />
+                <AccountCircleIcon sx={{ fontSize: "2.75rem", mr: 3 }} />
                 <Box>
-                  <Typography variant="h5">Tambah User</Typography>
+                  <Typography variant="h5">Edit User</Typography>
                   <Typography variant="body2">
-                    Formulir Tambah User Baru <small>{`( * Wajib Isi )`}</small>
+                    Formulir Edit User <small>{`( * Wajib Isi )`}</small>
                   </Typography>
                 </Box>
               </Box>
@@ -208,60 +172,42 @@ const UserAdd = () => {
 
             {/* level  */}
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Role *</InputLabel>
-                <Select
-                  label="Role"
-                  required
-                  name="level"
-                  value={formik.values.level}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.level && Boolean(formik.errors.level)}
-                >
-                  <MenuItem value="">--Pilih Level</MenuItem>
-                  {level.map((item) => {
-                    return (
-                      item.level > user.level && (
-                        <MenuItem key={item.level} value={item.level}>
-                          {item.nama_level}
-                        </MenuItem>
-                      )
-                    );
-                  })}
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                required
+                label="Role"
+                name="nama_level"
+                disabled
+                value={formik.values.nama_level}
+              />
             </Grid>
             {/* prov  */}
-            {formik.values.level === 3 && (
-              <>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Provinsi *</InputLabel>
-                    <Select
-                      label="Role"
-                      required
-                      name="provinsi_id"
-                      value={formik.values.provinsi_id}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      error={
-                        formik.touched.provinsi_id &&
-                        Boolean(formik.errors.provinsi_id)
-                      }
-                    >
-                      <MenuItem value="">--Pilih Provinsi</MenuItem>
-                      {provinsis.map((item) => (
-                        <MenuItem key={item.id} value={item.id}>
-                          {item.provinsi}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </>
+            {formik.values.level === 3 && provinsis.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Provinsi *</InputLabel>
+                  <Select
+                    label="Role"
+                    required
+                    name="provinsi_id"
+                    value={formik.values.provinsi_id}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched.provinsi_id &&
+                      Boolean(formik.errors.provinsi_id)
+                    }
+                  >
+                    <MenuItem value="">--Pilih Provinsi</MenuItem>
+                    {provinsis.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.provinsi}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             )}
-
             {/* admin  */}
             {formik.values.level === 2 && (
               <Grid item xs={12} sm={12}>
@@ -318,7 +264,6 @@ const UserAdd = () => {
                 </FormControl>
               </Grid>
             )}
-
             {/* nama  */}
             <Grid item xs={12} sm={6}>
               <TextField
@@ -333,7 +278,6 @@ const UserAdd = () => {
                 helperText={formik.touched.nama && formik.errors.nama}
               />
             </Grid>
-
             {/* email  */}
             <Grid item xs={12} sm={6}>
               <TextField
@@ -348,7 +292,6 @@ const UserAdd = () => {
                 helperText={formik.touched.email && formik.errors.email}
               />
             </Grid>
-
             {/* telp  */}
             <Grid item xs={12} sm={6}>
               <TextField
@@ -362,7 +305,6 @@ const UserAdd = () => {
                 helperText={formik.touched.telp && formik.errors.telp}
               />
             </Grid>
-
             {/* jabatan  */}
             <Grid item xs={12} sm={6}>
               <TextField
@@ -376,7 +318,6 @@ const UserAdd = () => {
                 helperText={formik.touched.jabatan && formik.errors.jabatan}
               />
             </Grid>
-
             {/* khusus jika user provinsi #Badanpublik */}
             {formik.values.level === 3 && (
               <>
@@ -459,7 +400,6 @@ const UserAdd = () => {
                 </Grid>
               </>
             )}
-
             {/* khusus jika user provinsi #PPID */}
             {formik.values.level === 3 && (
               <>
@@ -517,7 +457,6 @@ const UserAdd = () => {
                 </Grid>
               </>
             )}
-
             <Grid item xs={12}>
               <Grid container spacing={7}>
                 {/* username  */}
@@ -549,13 +488,13 @@ const UserAdd = () => {
                       required
                       id="account-settings-new-password"
                       type={show.showNewPassword ? "text" : "password"}
-                      name="password"
-                      value={formik.values.password}
+                      name="passwordBaru"
+                      value={formik.values.passwordBaru}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
                       error={
-                        formik.touched.password &&
-                        Boolean(formik.errors.password)
+                        formik.touched.passwordBaru &&
+                        Boolean(formik.errors.passwordBaru)
                       }
                       endAdornment={
                         <InputAdornment position="end">
@@ -616,7 +555,6 @@ const UserAdd = () => {
                 {/* konfirmasi  */}
               </Grid>
             </Grid>
-
             <Grid item xs={12}>
               <Button
                 disabled={formik.isSubmitting}
@@ -624,7 +562,7 @@ const UserAdd = () => {
                 variant="contained"
                 sx={{ marginRight: 3.5 }}
               >
-                Simpan
+                Update User
               </Button>
               <Button
                 type="reset"
@@ -642,4 +580,4 @@ const UserAdd = () => {
   );
 };
 
-export default UserAdd;
+export default TabEdit;

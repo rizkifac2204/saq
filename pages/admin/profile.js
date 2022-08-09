@@ -1,7 +1,128 @@
-import React from "react";
+// ** React Imports
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-function Profile() {
-  return <div>profile</div>;
-}
+// ** MUI Imports
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import TabList from "@mui/lab/TabList";
+import TabPanel from "@mui/lab/TabPanel";
+import TabContext from "@mui/lab/TabContext";
+import { styled } from "@mui/material/styles";
+import MuiTab from "@mui/material/Tab";
 
-export default Profile;
+// ** Icons Imports
+import AccountOutline from "mdi-material-ui/AccountOutline";
+import LockOpenOutline from "mdi-material-ui/LockOpenOutline";
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import HomeWorkIcon from "@mui/icons-material/HomeWork";
+
+// ** Tabs Imports
+import TabAccount from "src/views/profile/TabAccount";
+import TabSecurity from "src/views/profile/TabSecurity";
+import TabBadanPublik from "src/views/profile/TabBadanPublik";
+import TabPPID from "src/views/profile/TabPPID";
+
+// ** Third Party Styles Imports
+import "react-datepicker/dist/react-datepicker.css";
+
+const Tab = styled(MuiTab)(({ theme }) => ({
+  [theme.breakpoints.down("md")]: {
+    minWidth: 100,
+  },
+  [theme.breakpoints.down("sm")]: {
+    minWidth: 67,
+  },
+}));
+
+const TabName = styled("span")(({ theme }) => ({
+  lineHeight: 1.71,
+  fontSize: "0.875rem",
+  marginLeft: theme.spacing(2.4),
+  [theme.breakpoints.down("md")]: {
+    display: "none",
+  },
+}));
+
+const AccountSettings = () => {
+  // ** State
+  const [value, setValue] = useState("account");
+  const [profile, setProfile] = useState({});
+
+  useEffect(() => {
+    axios
+      .get(`/api/profile`)
+      .then((res) => {
+        setProfile(res.data);
+      })
+      .catch((err) => {});
+  }, []);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  return (
+    <Card>
+      <TabContext value={value}>
+        <TabList
+          onChange={handleChange}
+          aria-label="account-settings tabs"
+          sx={{ borderBottom: (theme) => `1px solid ${theme.palette.divider}` }}
+        >
+          <Tab
+            value="account"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <AccountOutline />
+                <TabName>Account</TabName>
+              </Box>
+            }
+          />
+          <Tab
+            value="security"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <LockOpenOutline />
+                <TabName>Security</TabName>
+              </Box>
+            }
+          />
+          <Tab
+            value="bp"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <HomeWorkIcon />
+                <TabName>Badan Publik</TabName>
+              </Box>
+            }
+          />
+          <Tab
+            value="ppid"
+            label={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <ApartmentIcon />
+                <TabName>PPID</TabName>
+              </Box>
+            }
+          />
+        </TabList>
+
+        <TabPanel sx={{ p: 0 }} value="account">
+          <TabAccount profile={profile} setProfile={setProfile} />
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value="security">
+          <TabSecurity profile={profile} setProfile={setProfile} />
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value="bp">
+          <TabBadanPublik profile={profile} setProfile={setProfile} />
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value="ppid">
+          <TabPPID profile={profile} setProfile={setProfile} />
+        </TabPanel>
+      </TabContext>
+    </Card>
+  );
+};
+
+export default AccountSettings;
