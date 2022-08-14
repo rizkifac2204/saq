@@ -112,7 +112,7 @@ export default Handler()
     ]);
 
     // failed
-    if (!proses) return req.status(400).json({ message: "Gagal Proses" });
+    if (!proses) return res.status(400).json({ message: "Gagal Proses" });
 
     res.json({ message: "Berhasil Menambah User Baru" });
   })
