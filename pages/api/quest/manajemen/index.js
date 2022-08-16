@@ -10,11 +10,6 @@ export default Handler()
       .modify((builder) => conditionFilterPoin(builder, req.session.user))
       .orderBy("saq_poin.poin", "asc");
 
-    if (!result)
-      return res
-        .status(404)
-        .json({ message: "Tidak Ditemukan", type: "error" });
-
     res.json(result);
   })
   .post(async (req, res) => {

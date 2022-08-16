@@ -4,13 +4,13 @@ import { conditionFilterPoin } from "middlewares/Condition";
 
 export default Handler()
   .get(async (req, res) => {
-    const { id } = req.query;
+    const { poin_id } = req.query;
 
     const result = await db
       .select("saq_poin.*")
       .from("saq_poin")
       .modify((builder) => conditionFilterPoin(builder, req.session.user))
-      .where("saq_poin.id", id)
+      .where("saq_poin.id", poin_id)
       .first();
     if (!result)
       return res
@@ -21,13 +21,13 @@ export default Handler()
     const getPertanyaan = await db
       .from("saq_pertanyaan")
       .select("*")
-      .where("poin_id", id);
+      .where("poin_id", poin_id);
     result.pertanyaan = getPertanyaan;
 
     res.json(result);
   })
   .put(async (req, res) => {
-    const { id } = req.query;
+    const { poin_id } = req.query;
     const { level, wilayah } = req.session.user;
 
     if (level > 3)
@@ -42,7 +42,7 @@ export default Handler()
     const cek = await db("saq_poin")
       .where("poin", poin)
       .andWhere("unit", unit)
-      .whereNot("id", id)
+      .whereNot("id", poin_id)
       .first();
     // Jika ada yang sama
     if (cek)
@@ -51,7 +51,7 @@ export default Handler()
         type: "error",
       });
 
-    const proses = await db("saq_poin").where("id", id).update({
+    const proses = await db("saq_poin").where("id", poin_id).update({
       unit,
       poin,
       penjelasan,
@@ -64,9 +64,9 @@ export default Handler()
     res.json({ message: "Berhasil Mengubah Data", type: "success" });
   })
   .delete(async (req, res) => {
-    const { id } = req.query;
+    const { poin_id } = req.query;
 
-    const proses = await db("saq_poin").where("id", id).del();
+    const proses = await db("saq_poin").where("id", poin_id).del();
 
     if (!proses)
       return res.status(400).json({ message: "Gagal Hapus", type: "error" });

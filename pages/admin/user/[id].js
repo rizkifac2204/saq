@@ -61,7 +61,7 @@ const AccountSettings = () => {
           setTimeout(() => router.push("/admin/user"), 1000);
         });
     }
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

@@ -1,83 +1,76 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+//MUI
+import Grid from "@mui/material/Grid";
 // Components
 import PoinList from "src/views/quest/PoinList";
-import PoinAdd from "src/views/quest/PoinAdd";
+import PertanyaanList from "src/views/quest/PertanyaanList";
 
 export default function Quest() {
+  const [isLoadingPoin, setIsLoadingPoin] = useState(false);
+  const [isLoadingPertanyaan, setIsLoadingPertanyaan] = useState(false);
   const [data, setData] = useState([]);
-  const [open, setOpen] = useState(true);
-  const [openForm, setOpenForm] = useState(false);
+  const [pertanyaan, setPertanyaan] = useState([]);
+  const [curPoin, setCurPoin] = useState({});
+
+  const getPertanyaan = (poin_id) => {
+    setIsLoadingPertanyaan(true);
+    axios
+      .get(`/api/quest/manajemen/${poin_id}/pertanyaan`)
+      .then((res) => {
+        setPertanyaan(res.data);
+      })
+      .catch((err) => {
+        toast.error("Terjadi Kesalahan");
+      })
+      .then(() => setIsLoadingPertanyaan(false));
+  };
 
   function fetchPoin() {
+    setIsLoadingPoin(true);
     axios
       .get(`/api/quest/manajemen`)
       .then((res) => {
         setData(res.data);
+        if (res.data.length !== 0) {
+          getPertanyaan(res.data[0].id);
+          setCurPoin(res.data[0]);
+        }
       })
       .catch((err) => {
         toast.error("Terjadi Kesalahan");
-      });
+      })
+      .then(() => setIsLoadingPoin(false));
   }
 
   useEffect(() => {
     fetchPoin();
-  }, []);
-
-  const deletePoin = (id) => {
-    const ask = confirm(
-      "Menghapus Poin akan menghapus semua pertanyaan pada poin tersebut, lanjutkan?"
-    );
-    if (ask) {
-      const toastProses = toast.loading("Tunggu Sebentar...", {
-        autoClose: false,
-      });
-      axios
-        .delete(`/api/quest/manajemen/${id}`)
-        .then((res) => {
-          setTimeout(() => {
-            setData((prev) => prev.filter((row) => row.id != id));
-          });
-          toast.update(toastProses, {
-            render: res.data.message,
-            type: "success",
-            isLoading: false,
-            autoClose: 2000,
-          });
-        })
-        .catch((err) => {
-          toast.update(toastProses, {
-            render: err.response.data.message,
-            type: "error",
-            isLoading: false,
-            autoClose: 2000,
-          });
-        });
-    }
-  };
-
-  // progress =>
-  // atur router jika klik
-  // selected list
-  // get pertanyaan
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <>
-      <PoinList
-        open={open}
-        setOpen={setOpen}
-        openForm={openForm}
-        setOpenForm={setOpenForm}
-        data={data}
-        deletePoin={deletePoin}
-      />
-
-      <PoinAdd
-        open={openForm}
-        onClose={() => setOpenForm(false)}
-        fetchPoin={fetchPoin}
-      />
-    </>
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={3}>
+        <PoinList
+          data={data}
+          setData={setData}
+          isLoadingPoin={isLoadingPoin}
+          curPoin={curPoin}
+          setCurPoin={setCurPoin}
+          getPertanyaan={getPertanyaan}
+          fetchPoin={fetchPoin}
+        />
+      </Grid>
+      <Grid item xs={12} md={9}>
+        <PertanyaanList
+          poin={data}
+          pertanyaan={pertanyaan}
+          setPertanyaan={setPertanyaan}
+          isLoadingPertanyaan={isLoadingPertanyaan}
+          curPoin={curPoin}
+          getPertanyaan={getPertanyaan}
+        />
+      </Grid>
+    </Grid>
   );
 }
