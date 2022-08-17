@@ -28,8 +28,10 @@ import ArrowRight from "@mui/icons-material/ArrowRight";
 import AddIcon from "@mui/icons-material/Add";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 // Components
 import PertanyaanAdd from "src/views/quest/PertanyaanAdd";
+import PertanyaanEdit from "src/views/quest/PertanyaanEdit";
 
 const FireNav = styled(List)({
   "& .MuiListItemButton-root": {
@@ -47,6 +49,8 @@ const FireNav = styled(List)({
 
 function PertanyaanList(props) {
   const [openForm, setOpenForm] = useState(false);
+  const [openEditForm, setOpenEditForm] = useState(false);
+  const [detailTemp, setDetailTemp] = useState({});
   const {
     poin,
     pertanyaan,
@@ -55,6 +59,44 @@ function PertanyaanList(props) {
     curPoin,
     getPertanyaan,
   } = props;
+
+  const deletePertanyaan = (id) => {
+    const ask = confirm(
+      "Menghapus Poin akan menghapus semua jawaban pada pertanyaan tersebut, lanjutkan?"
+    );
+    if (ask) {
+      const toastProses = toast.loading("Tunggu Sebentar...", {
+        autoClose: false,
+      });
+      axios
+        .delete(`/api/quest/manajemen/${curPoin.id}/pertanyaan/${id}`)
+        .then((res) => {
+          setTimeout(() => {
+            setPertanyaan((prev) => prev.filter((row) => row.id != id));
+          });
+          toast.update(toastProses, {
+            render: res.data.message,
+            type: "success",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        })
+        .catch((err) => {
+          toast.update(toastProses, {
+            render: err.response.data.message,
+            type: "error",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        });
+    }
+  };
+
+  const editPertanyaan = (item) => {
+    setOpenEditForm(true);
+    setDetailTemp(item);
+  };
+
   return (
     <>
       <Card>
@@ -72,7 +114,7 @@ function PertanyaanList(props) {
                     component="div"
                     noWrap
                   >
-                    Pertanyaan Poin {curPoin.penjelasan}
+                    Pertanyaan Poin {curPoin.poin}. {curPoin.penjelasan}
                   </Typography>
                 }
                 primaryTypographyProps={{
@@ -158,7 +200,24 @@ function PertanyaanList(props) {
                         <TableCell align="right">{row.nomor}</TableCell>
                         <TableCell>{row.pertanyaan}</TableCell>
                         <TableCell>{row.penjelasan}</TableCell>
-                        <TableCell align="right">b b</TableCell>
+                        <TableCell align="right">
+                          <>
+                            <IconButton
+                              edge="end"
+                              aria-label="Edit"
+                              onClick={() => editPertanyaan(row)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              aria-label="delete"
+                              onClick={() => deletePertanyaan(row.id)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
@@ -180,6 +239,15 @@ function PertanyaanList(props) {
         poin={poin}
         curPoin={curPoin}
         onClose={() => setOpenForm(false)}
+        getPertanyaan={getPertanyaan}
+      />
+
+      <PertanyaanEdit
+        open={openEditForm}
+        detailTemp={detailTemp}
+        poin={poin}
+        curPoin={curPoin}
+        onClose={() => setOpenEditForm(false)}
         getPertanyaan={getPertanyaan}
       />
     </>

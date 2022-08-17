@@ -32,7 +32,7 @@ export default Handler()
       return res
         .status(401)
         .json({ message: "Tidak Terdeteksi", type: "error" });
-    const { level, wilayah } = req.session.user;
+    const { level } = req.session.user;
     if (level > 3)
       return res
         .status(401)
@@ -42,8 +42,10 @@ export default Handler()
 
     // cek data sama
     const cek = await db("saq_pertanyaan")
-      .where("poin_id", poin_id)
-      .andWhere("nomor", nomor)
+      .where({
+        nomor,
+        poin_id,
+      })
       .first();
     // Jika ada yang sama
     if (cek)

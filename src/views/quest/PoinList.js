@@ -20,8 +20,10 @@ import ArrowRight from "@mui/icons-material/ArrowRight";
 import AddIcon from "@mui/icons-material/Add";
 import BallotIcon from "@mui/icons-material/Ballot";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 // Components
 import PoinAdd from "src/views/quest/PoinAdd";
+import PoinEdit from "src/views/quest/PoinEdit";
 
 const FireNav = styled(List)({
   "& .MuiListItemButton-root": {
@@ -39,6 +41,8 @@ const FireNav = styled(List)({
 
 export default function PoinList(props) {
   const [openForm, setOpenForm] = useState(false);
+  const [openEditForm, setOpenEditForm] = useState(false);
+  const [detailTemp, setDetailTemp] = useState({});
   const {
     data,
     setData,
@@ -79,6 +83,11 @@ export default function PoinList(props) {
           });
         });
     }
+  };
+
+  const editPoin = (item) => {
+    setOpenEditForm(true);
+    setDetailTemp(item);
   };
 
   return (
@@ -145,13 +154,22 @@ export default function PoinList(props) {
                   key={item.id}
                   sx={{ p: 0 }}
                   secondaryAction={
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => deletePoin(item.id)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    <>
+                      <IconButton
+                        edge="end"
+                        aria-label="Edit"
+                        onClick={() => editPoin(item)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={() => deletePoin(item.id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
                   }
                 >
                   <Tooltip title={item.penjelasan}>
@@ -189,6 +207,16 @@ export default function PoinList(props) {
       <PoinAdd
         open={openForm}
         onClose={() => setOpenForm(false)}
+        fetchPoin={fetchPoin}
+      />
+
+      <PoinEdit
+        detailTemp={detailTemp}
+        open={openEditForm}
+        onClose={() => {
+          setOpenEditForm(false);
+          setDetailTemp({});
+        }}
         fetchPoin={fetchPoin}
       />
     </>

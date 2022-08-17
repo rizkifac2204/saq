@@ -83,6 +83,21 @@ const TabDetail = (props) => {
               ) : (
                 <></>
               )}
+
+              {detail.kabkota ? (
+                <>
+                  <Grid item xs={12} sm={3}>
+                    <Typography>Kabupaten / Kota</Typography>
+                  </Grid>
+                  <DemoGrid item xs={12} sm={9}>
+                    <Typography variant="subtitle1">
+                      : {detail.kabkota}
+                    </Typography>
+                  </DemoGrid>
+                </>
+              ) : (
+                <></>
+              )}
             </Grid>
 
             <Typography color={"primary"} sx={{ my: 5 }}>

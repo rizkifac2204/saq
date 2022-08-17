@@ -13,19 +13,21 @@ export default Handler()
     res.json(result);
   })
   .post(async (req, res) => {
-    const { level, wilayah } = req.session.user;
+    const { level, provinsi_id } = req.session.user;
     if (level > 3)
       return res
         .status(401)
         .json({ message: "Tidak Ada Otoritas", type: "error" });
 
-    const unit = level > 2 ? wilayah : 0;
+    const unit = level > 2 ? provinsi_id : 0;
     const { poin, penjelasan } = req.body;
 
     // cek data sama
     const cek = await db("saq_poin")
-      .where("poin", poin)
-      .andWhere("unit", unit)
+      .where({
+        poin,
+        unit,
+      })
       .first();
     // Jika ada yang sama
     if (cek)

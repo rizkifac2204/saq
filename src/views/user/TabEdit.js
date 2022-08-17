@@ -32,6 +32,37 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import EyeOutline from "mdi-material-ui/EyeOutline";
 import EyeOffOutline from "mdi-material-ui/EyeOffOutline";
 
+const klasifikasilevel = (level) => {
+  if (!level) return;
+  if (level === 1) {
+    const level = [
+      { level: 2, nama_level: "Admin" },
+      { level: 3, nama_level: "User Provinsi" },
+    ];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+  if (level === 2) {
+    const level = [{ level: 3, nama_level: "User Provinsi" }];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+  if (level === 3) {
+    const level = [{ level: 4, nama_level: "User Kabupaten/Kota" }];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+};
+
 const handleSubmit = (values, setDetail, setSubmitting) => {
   const toastProses = toast.loading("Tunggu Sebentar...", {
     autoClose: false,
@@ -82,6 +113,11 @@ const validationSchema = yup.object({
     then: yup.number().required("Harus Dipilih"),
     otherwise: yup.number(),
   }),
+  kabkota_id: yup.number().when("level", {
+    is: (level) => level == 4,
+    then: yup.number().required("Harus Dipilih"),
+    otherwise: yup.number(),
+  }),
   username: yup.string().required("Username Harus Diisi"),
   passwordBaru: yup.string().required("Password Harus Diisi"),
   passwordConfirm: yup
@@ -124,6 +160,8 @@ const TabEdit = (props) => {
   };
 
   const [provinsis, setProvinsis] = useState([]);
+  const [kabkotas, setKabkotas] = useState([]);
+  // panggil provinsi terlebih dahulu
   useEffect(() => {
     const fetchProv = () => {
       axios
@@ -152,6 +190,22 @@ const TabEdit = (props) => {
     onSubmit: (values, { setSubmitting }) =>
       handleSubmit(values, setDetail, setSubmitting),
   });
+
+  useEffect(() => {
+    if (!formik.values.provinsi_id) return;
+    if (!formik.values.level) return;
+    const fetchKabkota = () => {
+      axios
+        .get(`/api/services/provinsis/${formik.values.provinsi_id}`)
+        .then((res) => {
+          setKabkotas(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+    if (formik.values.level === 4) fetchKabkota();
+  }, [formik.values.provinsi_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Card>
@@ -187,7 +241,7 @@ const TabEdit = (props) => {
                 <FormControl fullWidth>
                   <InputLabel>Provinsi *</InputLabel>
                   <Select
-                    label="Role"
+                    label="Provinsi *"
                     required
                     name="provinsi_id"
                     value={formik.values.provinsi_id}
@@ -202,6 +256,33 @@ const TabEdit = (props) => {
                     {provinsis.map((item) => (
                       <MenuItem key={item.id} value={item.id}>
                         {item.provinsi}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+            {/* kabupaten/kota  */}
+            {formik.values.level === 4 && kabkotas.length > 0 && (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Kabupaten/Kota *</InputLabel>
+                  <Select
+                    label="Kabupaten/Kota *"
+                    required
+                    name="kabkota_id"
+                    value={formik.values.kabkota_id}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched.kabkota_id &&
+                      Boolean(formik.errors.kabkota_id)
+                    }
+                  >
+                    <MenuItem value="">--Pilih Kabupaten/Kota</MenuItem>
+                    {kabkotas.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.kabkota}
                       </MenuItem>
                     ))}
                   </Select>

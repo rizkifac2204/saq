@@ -28,26 +28,28 @@ export default Handler()
   })
   .put(async (req, res) => {
     const { poin_id } = req.query;
-    const { level, wilayah } = req.session.user;
+    const { level, provinsi_id } = req.session.user;
 
     if (level > 3)
       return res
         .status(401)
         .json({ message: "Tidak Ada Otoritas", type: "error" });
 
-    const unit = level > 2 ? wilayah : 0;
+    const unit = level > 2 ? provinsi_id : 0;
     const { poin, penjelasan } = req.body;
 
     // cek data sama
     const cek = await db("saq_poin")
-      .where("poin", poin)
-      .andWhere("unit", unit)
+      .where({
+        poin,
+        unit,
+      })
       .whereNot("id", poin_id)
       .first();
     // Jika ada yang sama
     if (cek)
       return res.status(400).json({
-        message: `Poin ${poin} pada penjelasan tersebut sudah terdaftar`,
+        message: `Poin ${poin} sudah terdaftar`,
         type: "error",
       });
 

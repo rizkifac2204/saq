@@ -32,11 +32,36 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import EyeOutline from "mdi-material-ui/EyeOutline";
 import EyeOffOutline from "mdi-material-ui/EyeOffOutline";
 
-const level = [
-  { level: 1, nama_level: "Super Admin" },
-  { level: 2, nama_level: "Admin" },
-  { level: 3, nama_level: "User Provinsi" },
-];
+const klasifikasilevel = (level) => {
+  if (!level) return;
+  if (level === 1) {
+    const level = [
+      { level: 2, nama_level: "Admin" },
+      { level: 3, nama_level: "User Provinsi" },
+    ];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+  if (level === 2) {
+    const level = [{ level: 3, nama_level: "User Provinsi" }];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+  if (level === 3) {
+    const level = [{ level: 4, nama_level: "User Kabupaten/Kota" }];
+    return level.map((item) => (
+      <MenuItem key={item.level} value={item.level}>
+        {item.nama_level}
+      </MenuItem>
+    ));
+  }
+};
 
 const handleSubmit = (values, setSubmitting) => {
   const toastProses = toast.loading("Tunggu Sebentar...", {
@@ -88,6 +113,11 @@ const validationSchema = yup.object({
     then: yup.number().required("Harus Dipilih"),
     otherwise: yup.number(),
   }),
+  kabkota_id: yup.number().when("level", {
+    is: (level) => level == 4,
+    then: yup.number().required("Harus Dipilih"),
+    otherwise: yup.number(),
+  }),
   username: yup.string().required("Username Harus Diisi"),
   password: yup.string().required("Password Harus Diisi"),
   passwordConfirm: yup
@@ -128,6 +158,8 @@ const UserAdd = () => {
   };
 
   const [provinsis, setProvinsis] = useState([]);
+  const [kabkotas, setKabkotas] = useState([]);
+  // panggil provinsi terlebih dahulu
   useEffect(() => {
     const fetchProv = () => {
       axios
@@ -147,6 +179,7 @@ const UserAdd = () => {
       level: "",
       wilayah: [],
       provinsi_id: "",
+      kabkota_id: "",
       nama: "",
       telp: "",
       email: "",
@@ -173,6 +206,7 @@ const UserAdd = () => {
     if (!formik.values.level) return;
     formik.setFieldValue("wilayah", []);
     formik.setFieldValue("provinsi_id", "");
+    formik.setFieldValue("kabkota_id", "");
     formik.setFieldValue("telp", "");
     formik.setFieldValue("email", "");
     formik.setFieldValue("jabatan", "");
@@ -185,6 +219,23 @@ const UserAdd = () => {
     formik.setFieldValue("ppid_email", "");
     formik.setFieldValue("ppid_telp", "");
   }, [formik.values.level]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    formik.setFieldValue("kabkota_id", "");
+    if (!formik.values.provinsi_id) return;
+    if (!formik.values.level) return;
+    const fetchKabkota = () => {
+      axios
+        .get(`/api/services/provinsis/${formik.values.provinsi_id}`)
+        .then((res) => {
+          setKabkotas(res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    };
+    if (formik.values.level === 4) fetchKabkota();
+  }, [formik.values.provinsi_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user)
     return <Skeleton variant="rectangular" width={"100%"} height={118} />;
@@ -220,47 +271,10 @@ const UserAdd = () => {
                   error={formik.touched.level && Boolean(formik.errors.level)}
                 >
                   <MenuItem value="">--Pilih Level</MenuItem>
-                  {level.map((item) => {
-                    return (
-                      item.level > user.level && (
-                        <MenuItem key={item.level} value={item.level}>
-                          {item.nama_level}
-                        </MenuItem>
-                      )
-                    );
-                  })}
+                  {user && klasifikasilevel(user.level)}
                 </Select>
               </FormControl>
             </Grid>
-            {/* prov  */}
-            {formik.values.level === 3 && (
-              <>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Provinsi *</InputLabel>
-                    <Select
-                      label="Role"
-                      required
-                      name="provinsi_id"
-                      value={formik.values.provinsi_id}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      error={
-                        formik.touched.provinsi_id &&
-                        Boolean(formik.errors.provinsi_id)
-                      }
-                    >
-                      <MenuItem value="">--Pilih Provinsi</MenuItem>
-                      {provinsis.map((item) => (
-                        <MenuItem key={item.id} value={item.id}>
-                          {item.provinsi}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </>
-            )}
 
             {/* admin  */}
             {formik.values.level === 2 && (
@@ -317,6 +331,64 @@ const UserAdd = () => {
                   </FormHelperText>
                 </FormControl>
               </Grid>
+            )}
+
+            {/* prov  */}
+            {formik.values.level > 2 && (
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Provinsi *</InputLabel>
+                  <Select
+                    label="Provinsi "
+                    required
+                    name="provinsi_id"
+                    value={formik.values.provinsi_id}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={
+                      formik.touched.provinsi_id &&
+                      Boolean(formik.errors.provinsi_id)
+                    }
+                  >
+                    <MenuItem value="">--Pilih Provinsi</MenuItem>
+                    {provinsis.map((item) => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.provinsi}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
+
+            {/* kabkota  */}
+            {formik.values.level === 4 && (
+              <>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Kabupaten/Kota *</InputLabel>
+                    <Select
+                      label="Kabupaten/Kota *"
+                      required
+                      name="kabkota_id"
+                      value={formik.values.kabkota_id}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      error={
+                        formik.touched.kabkota_id &&
+                        Boolean(formik.errors.kabkota_id)
+                      }
+                    >
+                      <MenuItem value="">--Pilih Kabupaten/kota</MenuItem>
+                      {kabkotas.map((item) => (
+                        <MenuItem key={item.id} value={item.id}>
+                          {item.kabkota}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </>
             )}
 
             {/* nama  */}

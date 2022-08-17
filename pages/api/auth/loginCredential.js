@@ -37,6 +37,8 @@ const LoginCredential = async (req, res) => {
       level: checkUser.level,
       wilayah: checkUser.wilayah,
       provinsi_id: checkUser.provinsi_id,
+      kabkota_id: checkUser.kabkota_id,
+      pengelola: checkUser.pengelola,
       nama: checkUser.nama,
       image: null,
     },

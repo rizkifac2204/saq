@@ -69,7 +69,7 @@ const AccountSettings = () => {
 
   const handleDeleteClick = () => {
     const ask = confirm(
-      "Menghapus user akan serta manghapus jawaban jika sudah mebgisi, lanjutkan?"
+      "Menghapus user akan serta manghapus jawaban jika sudah mengisi, lanjutkan?"
     );
     if (ask) {
       const toastProses = toast.loading("Tunggu Sebentar...", {
@@ -114,7 +114,7 @@ const AccountSettings = () => {
               </Box>
             }
           />
-          {detail.editable ? (
+          {detail.editable && (
             <Tab
               value="edit"
               label={
@@ -124,28 +124,24 @@ const AccountSettings = () => {
                 </Box>
               }
             />
-          ) : (
-            <></>
           )}
         </TabList>
 
-        <TabPanel sx={{ p: 0 }} value="detail">
+        <TabPanel sx={{ p: 0 }} value="detail" index={0}>
           <TabDetail
             detail={detail}
             setDetail={setDetail}
             handleDeleteClick={handleDeleteClick}
           />
         </TabPanel>
-        {detail.editable ? (
-          <TabPanel sx={{ p: 0 }} value="edit">
+        {detail.editable && (
+          <TabPanel sx={{ p: 0 }} value="edit" index={1}>
             <TabEdit
               detail={detail}
               setDetail={setDetail}
               handleDeleteClick={handleDeleteClick}
             />
           </TabPanel>
-        ) : (
-          <></>
         )}
       </TabContext>
     </Card>

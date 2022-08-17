@@ -1,12 +1,15 @@
 import db from "libs/db";
 import Handler from "middlewares/Handler";
 import bcrypt from "bcrypt";
+import { conditionFilterUser } from "middlewares/Condition";
 
 const editable = (user) => {
   if (user.level === 1) {
-    return `true as editable`;
+    return `IF(${user.level} < user.level, true, false) as editable`;
   } else if (user.level === 2) {
     return `FIND_IN_SET(user.provinsi_id, '${user.wilayah}') as editable`;
+  } else if (user.level === 3) {
+    return `IF(${user.level} < user.level, true, false) as editable`;
   } else {
     return `false as editable`;
   }
@@ -24,13 +27,16 @@ export default Handler()
         "user.*",
         "level.nama_level",
         "provinsi.provinsi",
+        "kabkota.kabkota",
         db.raw(myself(req.session.user)),
         db.raw(editable(req.session.user))
       )
       .from("user")
       .innerJoin("level", "user.level", "level.level")
       .leftJoin("provinsi", "user.provinsi_id", "provinsi.id")
+      .leftJoin("kabkota", "user.kabkota_id", "kabkota.id")
       .where("user.id", id)
+      .modify((builder) => conditionFilterUser(builder, req.session.user))
       .first();
     if (!result) return res.status(404).json({ message: "Tidak Ditemukan" });
 
@@ -48,13 +54,14 @@ export default Handler()
   })
   .put(async (req, res) => {
     const { level: leveladmin } = req.session.user;
-    if (leveladmin > 2)
+    if (leveladmin > 3)
       return res.status(401).json({ message: "Tidak Ada Otoritas" });
 
     const {
       id,
       level,
       provinsi_id,
+      kabkota_id,
       wilayah,
       nama,
       telp,
@@ -110,6 +117,7 @@ export default Handler()
       .update({
         level,
         provinsi_id: provinsi_id ? provinsi_id : null,
+        kabkota_id: kabkota_id ? kabkota_id : null,
         wilayah: listwilayah.length === 0 ? null : `${listwilayah}`,
         nama,
         telp,

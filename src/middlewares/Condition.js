@@ -5,18 +5,6 @@
 //   return null;
 // };
 
-// export const conditionFilterUser = (builder, user) => {
-//   if (user.level === 1) {
-//     // skip untuk semua
-//   }
-//   if (user.level === 2) {
-//     builder.where("admin.bawaslu_id", "like", `${user.bawaslu_id}%`);
-//   }
-//   if (user.level === 3) {
-//     builder.where("admin.bawaslu_id", user.bawaslu_id);
-//   }
-// };
-
 // export const conditionWillSpesific = (db, builder, user, table) => {
 //   if (user.level === 1) {
 //     // skip untuk semua
@@ -50,6 +38,21 @@ export const conditionFilterPoin = (builder, user) => {
     builder.where("saq_poin.unit", `0`);
   }
   if (user.level === 3) {
-    builder.where("saq_poin.unit", "=", `${user.wilayah}`);
+    builder.where("saq_poin.unit", user.provinsi_id);
+  }
+};
+
+export const conditionFilterUser = (builder, user) => {
+  if (user.level === 1) {
+    builder.whereNot("user.level", 4);
+  }
+  if (user.level === 2) {
+    builder.whereNot("user.level", 4);
+  }
+  if (user.level === 3) {
+    builder.where("user.provinsi_id", user.provinsi_id);
+  }
+  if (user.level === 4) {
+    builder.where("user.kabkota_id", user.kabkota_id);
   }
 };

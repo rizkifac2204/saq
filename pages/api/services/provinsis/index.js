@@ -9,6 +9,9 @@ export default Handler().get(async (req, res) => {
         var array = JSON.parse("[" + req.session.user.wilayah + "]");
         builder.whereIn("id", array);
       }
+      if (req.session.user.level === 3) {
+        builder.where("id", req.session.user.provinsi_id);
+      }
     });
   res.json(data);
 });
