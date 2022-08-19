@@ -18,7 +18,7 @@ export default Handler().put(async (req, res) => {
   });
 
   // failed
-  if (!proses) return req.status(400).json({ message: "Gagal Proses" });
+  if (!proses) return res.status(400).json({ message: "Gagal Proses" });
 
   res.json({ message: "Berhasil Mengubah Data Badan Publik" });
 });

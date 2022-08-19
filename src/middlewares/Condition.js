@@ -56,3 +56,12 @@ export const conditionFilterUser = (builder, user) => {
     builder.where("user.kabkota_id", user.kabkota_id);
   }
 };
+
+export const conditionFilterKuesioner = (builder, user) => {
+  if (user.level === 3) {
+    builder.where("saq_poin.unit", `0`);
+  }
+  if (user.level === 4) {
+    builder.where("saq_poin.unit", user.provinsi_id);
+  }
+};

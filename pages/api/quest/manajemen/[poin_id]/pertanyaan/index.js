@@ -65,7 +65,7 @@ export default Handler()
 
     // failed
     if (!proses)
-      return req.status(400).json({ message: "Gagal Proses", type: "error" });
+      return res.status(400).json({ message: "Gagal Proses", type: "error" });
 
     res.json({ message: "Berhasil Menambah Pertanyaan Baru", type: "success" });
   });
