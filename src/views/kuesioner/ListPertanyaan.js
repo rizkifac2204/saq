@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import validator from "validator";
+import { toast } from "react-toastify";
 //MUI
 import Grid from "@mui/material/Grid";
 import ListItem from "@mui/material/ListItem";
@@ -22,17 +23,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FileAction from "views/kuesioner/FileAction";
 
 const ListPertanyaan = ({ pertanyaan }) => {
-  const [jawaban, setJawaban] = useState(pertanyaan.jawaban);
-  const [keterangan, setKeterangan] = useState(pertanyaan.keterangan);
-  const [url, setUrl] = useState(pertanyaan.url);
-  const [file, setFile] = useState(pertanyaan.file);
-
+  // state
+  const [data, setData] = useState(pertanyaan);
   const [statusSnack, setStatusSnack] = useState({
     open: false,
     type: "info",
     message: "",
   });
-
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -40,12 +37,37 @@ const ListPertanyaan = ({ pertanyaan }) => {
     setStatusSnack({ ...statusSnack, open: false });
   };
 
-  const handleAnswer = (event, kolom) => {
-    const { value, name } = event.target;
-    if (!value) return;
+  const handleChange = (event) => {
+    // ambil nama dan value, jika radio ganti sebagai inetegr
+    const { name } = event.target;
+    const value =
+      event.target.type === "radio"
+        ? parseInt(event.target.value)
+        : event.target.value;
 
-    if (name === "url") {
-      if (!validator.isURL(value)) {
+    // kondisi jika merubah jawaban menjadi tidak, tapi isian url dan file sudah ada
+    if (name === "jawaban") {
+      if (!value) {
+        if (data.file || data.url) {
+          const ask = confirm("Jawaban Url dan File Akan Direset. Lanjutkan?");
+          if (!ask) return;
+        }
+      }
+    }
+
+    // lanjutkan merubah data
+    setData((prev) => {
+      return { ...prev, [name]: value };
+    });
+
+    // jika ini radio, langsung aksi submit
+    if (name === "jawaban") handleAnswer(value, "jawaban");
+  };
+
+  const handleAnswer = (value, kolom) => {
+    // cek jika url valid
+    if (kolom === "url") {
+      if (value && !validator.isURL(value)) {
         return setStatusSnack({
           key: new Date().getTime(),
           open: true,
@@ -57,7 +79,7 @@ const ListPertanyaan = ({ pertanyaan }) => {
     }
 
     const post = {
-      [name]: value,
+      [kolom]: value,
     };
     setStatusSnack({
       key: new Date().getTime(),
@@ -72,6 +94,17 @@ const ListPertanyaan = ({ pertanyaan }) => {
         post
       )
       .then((res) => {
+        // tambah kan id jika insert baru
+        if (res.data.id) {
+          setData((prev) => {
+            return { ...prev, pertanyaan_id: res.data.id };
+          });
+        }
+        if (res.data.reset) {
+          setData((prev) => {
+            return { ...prev, file: null, url: null };
+          });
+        }
         setStatusSnack({
           ...statusSnack,
           open: true,
@@ -87,8 +120,47 @@ const ListPertanyaan = ({ pertanyaan }) => {
           message: err.response.data.message,
           type: "error",
         });
-      })
-      .then(() => {});
+      });
+  };
+
+  const handleDelete = () => {
+    const ask = confirm("Yakin Hapus Jawaban?");
+    if (ask) {
+      const toastProses = toast.loading("Tunggu Sebentar...", {
+        autoClose: false,
+      });
+      axios
+        .delete(
+          `/api/kuesioner/${pertanyaan.poin_id}/pertanyaan/${pertanyaan.id}/`
+        )
+        .then((res) => {
+          setTimeout(() => {
+            setData((prev) => {
+              return {
+                ...prev,
+                pertanyaan_id: null,
+                jawaban: null,
+                url: null,
+                file: null,
+              };
+            });
+          });
+          toast.update(toastProses, {
+            render: res.data.message,
+            type: "success",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        })
+        .catch((err) => {
+          toast.update(toastProses, {
+            render: err.response.data.message,
+            type: "error",
+            isLoading: false,
+            autoClose: 2000,
+          });
+        });
+    }
   };
 
   return (
@@ -131,8 +203,8 @@ const ListPertanyaan = ({ pertanyaan }) => {
                 <FormControl>
                   <RadioGroup
                     name="jawaban"
-                    value={jawaban}
-                    onChange={(event) => handleAnswer(event, "jawaban")}
+                    value={data.jawaban}
+                    onChange={(event) => handleChange(event)}
                   >
                     <FormControlLabel
                       value="1"
@@ -151,25 +223,29 @@ const ListPertanyaan = ({ pertanyaan }) => {
                 <Stack spacing={4}>
                   <TextField
                     fullWidth
+                    disabled={typeof data.jawaban === "object"}
                     label="Keterangan"
                     variant="outlined"
                     size="small"
                     multiline
                     rows={2}
                     name="keterangan"
-                    value={keterangan ? keterangan : ""}
-                    onChange={(event) => setKeterangan(event.target.value)}
-                    onBlur={(event) => handleAnswer(event, "keterangan")}
+                    value={data.keterangan ? data.keterangan : ""}
+                    onChange={(event) => handleChange(event)}
+                    onBlur={(event) =>
+                      handleAnswer(event.target.value, "keterangan")
+                    }
                   />
                   <TextField
                     fullWidth
+                    disabled={data.jawaban !== 1}
                     label="URL"
                     variant="outlined"
                     size="small"
                     name="url"
-                    value={url ? url : ""}
-                    onChange={(event) => setUrl(event.target.value)}
-                    onBlur={(event) => handleAnswer(event, "url")}
+                    value={data.url ? data.url : ""}
+                    onChange={(event) => handleChange(event)}
+                    onBlur={(event) => handleAnswer(event.target.value, "url")}
                   />
                 </Stack>
               </Grid>
@@ -180,13 +256,15 @@ const ListPertanyaan = ({ pertanyaan }) => {
                   spacing={2}
                 >
                   <FileAction
-                    path="pemberitahuan"
-                    namaFile="file_surat_pemberitahuan"
-                    data={""}
-                    responses={""}
-                    setResponses={""}
+                    disabled={data.jawaban !== 1}
+                    data={data}
+                    setData={setData}
                   />
-                  <IconButton aria-label="delete">
+                  <IconButton
+                    aria-label="delete"
+                    disabled={typeof data.jawaban === "object"}
+                    onClick={handleDelete}
+                  >
                     <DeleteIcon color="error" />
                   </IconButton>
                 </Stack>

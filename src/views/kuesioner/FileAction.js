@@ -39,7 +39,7 @@ function CircularProgressWithLabel(props) {
   );
 }
 
-function FileAction({ data, path, namaFile, responses, setResponses }) {
+function FileAction({ disabled, data, setData }) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -47,28 +47,29 @@ function FileAction({ data, path, namaFile, responses, setResponses }) {
     setIsUploading(true);
     const file = e.target.files[0];
     if (!file) return;
-    const filename = `(${data.id})_${file.name}`;
+    const filename = `(${data.jawaban_id})_${file.name}`;
     const formData = new FormData();
     formData.append("file", file, filename);
-    formData.append("id", data.id);
-    formData.append("kolom", namaFile);
     axios
-      .post(`/api/permohonan/upload`, formData, {
-        headers: {
-          "content-type": "multipart/form-data",
-          destinationfile: path,
-        },
-        onUploadProgress: (event) => {
-          setProgress(Math.round((event.loaded * 100) / event.total));
-        },
-      })
+      .post(
+        `/api/kuesioner/${data.poin_id}/pertanyaan/${data.id}/upload`,
+        formData,
+        {
+          headers: {
+            "content-type": "multipart/form-data",
+            destinationfile: "upload",
+          },
+          onUploadProgress: (event) => {
+            setProgress(Math.round((event.loaded * 100) / event.total));
+          },
+        }
+      )
       .then((res) => {
         toast.success(res.data.message);
-        const updatedResponses = responses.map((item) => {
-          if (item.id == data.id) return { ...item, [namaFile]: res.data.file };
-          return item;
+        console.log(res.data);
+        setData((prev) => {
+          return { ...prev, file: res.data.file };
         });
-        setResponses(updatedResponses);
       })
       .catch((err) => {
         console.log(err);
@@ -79,22 +80,20 @@ function FileAction({ data, path, namaFile, responses, setResponses }) {
         setProgress(0);
       });
   };
-  const deleteFile = (id, file, kolom) => {
+  const deleteFile = (file) => {
     const ask = confirm("Yakin Hapus File Data?");
     if (ask) {
       const toastProses = toast.loading("Tunggu Sebentar...", {
         autoClose: false,
       });
       axios
-        .delete(`/api/permohonan/upload`, {
-          params: { id, file, path, namaFile },
+        .delete(`/api/kuesioner/${data.poin_id}/pertanyaan/${data.id}/upload`, {
+          params: { file },
         })
         .then((res) => {
-          const updatedResponses = responses.map((item) => {
-            if (item.id == id) return { ...item, [namaFile]: null };
-            return item;
+          setData((prev) => {
+            return { ...prev, file: null };
           });
-          setResponses(updatedResponses);
           toast.update(toastProses, {
             render: res.data.message,
             type: "success",
@@ -114,13 +113,23 @@ function FileAction({ data, path, namaFile, responses, setResponses }) {
     }
   };
 
-  if (!data[namaFile])
+  if (!data.file)
     return (
       <>
         {!isUploading && (
           <label htmlFor={`file` + data.id}>
-            <Input id={`file` + data.id} type="file" onChange={handleUpload} />
-            <IconButton color="secondary" aria-label="upload" component="span">
+            <Input
+              disabled={disabled}
+              id={`file` + data.id}
+              type="file"
+              onChange={handleUpload}
+            />
+            <IconButton
+              disabled={disabled}
+              color="secondary"
+              aria-label="upload"
+              component="span"
+            >
               <UploadFileIcon />
             </IconButton>
           </label>
@@ -131,25 +140,19 @@ function FileAction({ data, path, namaFile, responses, setResponses }) {
   return (
     <>
       <a
-        href={"/api/services/file/public/" + path + "/" + data[namaFile]}
+        href={"/api/services/file/public/upload/" + data.file}
         target="_blank"
         rel="noreferrer"
       >
-        {data[namaFile]}
+        {data.file}
       </a>
       <br />
-      <a
-        href={"/api/services/file/public/" + path + "/" + data[namaFile]}
-        download
-      >
+      <a href={"/api/services/file/public/upload/" + data.file} download>
         <IconButton>
           <CloudDownloadIcon />
         </IconButton>
       </a>
-      <IconButton
-        title="Delete File"
-        onClick={() => deleteFile(data.id, data[namaFile], namaFile)}
-      >
+      <IconButton title="Delete File" onClick={() => deleteFile(data.file)}>
         <DeleteIcon />
       </IconButton>
     </>

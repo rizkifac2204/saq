@@ -1,6 +1,6 @@
 import db from "libs/db";
 import Handler from "middlewares/Handler";
-import { Upload, DeleteUpload } from "services/UploadService";
+import { Upload, DeleteUpload } from "middlewares/UploadServices";
 
 export default Handler()
   .post(Upload().single("file"), async (req, res) => {
@@ -11,14 +11,17 @@ export default Handler()
         .json({ message: "File Tidak Sesuai Ketentuan", type: "error" });
     }
 
-    // dapatkan body untuk tabel
-    const { id, kolom } = req.body;
+    const { id: user_id } = req.session.user;
+    const { poin_id, pertanyaan_id } = req.query;
     const { filename } = req.file;
 
-    const updateFileResponse = await db("permohonan_respon")
-      .where("id", id)
+    const updateFileResponse = await db("saq_jawaban")
+      .where({
+        user_id,
+        pertanyaan_id,
+      })
       .update({
-        [kolom]: filename,
+        file: filename,
       });
 
     // failed
@@ -30,16 +33,21 @@ export default Handler()
     res.json({ file: filename, message: "Berhasil Upload" });
   })
   .delete(async (req, res) => {
-    const update = await db("permohonan_respon")
-      .where("id", req.query.id)
+    const { id: user_id } = req.session.user;
+    const { poin_id, pertanyaan_id } = req.query;
+    const update = await db("saq_jawaban")
+      .where({
+        user_id,
+        pertanyaan_id,
+      })
       .update({
-        [req.query.namaFile]: null,
+        file: null,
       });
 
     if (!update) {
       return res.status(400).json({ message: "Gagal Memproses Data" });
     }
-    DeleteUpload("./public/" + req.query.path, req.query.file);
+    DeleteUpload("./public/upload", req.query.file);
     res.json({ message: "Berhasil Hapus" });
   });
 
