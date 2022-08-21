@@ -1,5 +1,5 @@
 import nextConnect from "next-connect";
-import jwtDecode from "jwt-decode";
+import { verify } from "jsonwebtoken";
 import cookie from "cookie";
 
 export default function Handler() {
@@ -16,7 +16,7 @@ export default function Handler() {
       const { saqBawaslu } = cookie.parse(req.headers.cookie);
       if (!saqBawaslu)
         return res.status(401).json({ message: "Akses Tidak Dikenal" });
-      const decoded = jwtDecode(saqBawaslu);
+      const decoded = verify(saqBawaslu, process.env.JWT_SECRET_KEY);
       req.session = {
         user: decoded,
       };

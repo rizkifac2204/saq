@@ -39,7 +39,8 @@ const VerticalNavSectionTitle = (props) => {
 
   if (!user) return <></>;
 
-  if (item.role.includes(user.level))
+  if (item.role.includes(user.level)) {
+    if (item.special && user.level === 3 && !user.pengelola) return <></>;
     return (
       <ListSubheader
         className="nav-section-title"
@@ -73,6 +74,7 @@ const VerticalNavSectionTitle = (props) => {
         </Divider>
       </ListSubheader>
     );
+  }
 
   return <></>;
 };

@@ -30,26 +30,24 @@ const LoginCredential = async (req, res) => {
   const match = await bcrypt.compare(password, checkUser.password);
   if (!match) return res.status(401).json({ message: "Data Tidak Ditemukan" });
 
-  const token = sign(
-    {
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // 30 hari
-      id: checkUser.id,
-      level: checkUser.level,
-      wilayah: checkUser.wilayah,
-      provinsi_id: checkUser.provinsi_id,
-      kabkota_id: checkUser.kabkota_id,
-      pengelola: checkUser.pengelola,
-      nama: checkUser.nama,
-      image: null,
-    },
-    process.env.JWT_SECRET_KEY
-  );
+  const preparejwt = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 hari
+    id: checkUser.id,
+    level: checkUser.level,
+    wilayah: checkUser.wilayah,
+    provinsi_id: checkUser.provinsi_id,
+    kabkota_id: checkUser.kabkota_id,
+    pengelola: checkUser.pengelola,
+    nama: checkUser.nama,
+    image: null,
+  };
+  const setjwt = sign(preparejwt, process.env.JWT_SECRET_KEY);
 
-  const serialized = serialize("saqBawaslu", token, {
+  const serialized = serialize("saqBawaslu", setjwt, {
     httpOnly: true,
     secure: process.env.NODE_ENV !== "development",
     sameSite: "strict",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
 

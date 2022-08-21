@@ -2,6 +2,7 @@ import db from "libs/db";
 import Handler from "middlewares/Handler";
 import bcrypt from "bcrypt";
 import { conditionFilterUser } from "middlewares/Condition";
+import { DeleteUpload } from "middlewares/UploadServices";
 
 const editable = (user) => {
   if (user.level === 1) {
@@ -142,9 +143,21 @@ export default Handler()
   })
   .delete(async (req, res) => {
     const { id } = req.query;
+
+    const cek = await db
+      .select("file")
+      .from("saq_jawaban")
+      .where("user_id", id);
+
+    const files = cek.map(function (value) {
+      return value.file;
+    });
+
     const proses = await db("user").where("id", id).del();
 
     if (!proses) return res.status(400).json({ message: "Gagal Hapus" });
+
+    DeleteUpload("./public/upload", files);
 
     res.json({ message: "Berhasil Hapus", type: "success" });
   });

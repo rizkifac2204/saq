@@ -54,9 +54,7 @@ export default function PoinList(props) {
   } = props;
 
   const deletePoin = (id) => {
-    const ask = confirm(
-      "Menghapus Poin akan menghapus semua pertanyaan pada poin tersebut, lanjutkan?"
-    );
+    const ask = confirm("yakin lanjutkan?");
     if (ask) {
       const toastProses = toast.loading("Tunggu Sebentar...", {
         autoClose: false,
@@ -75,8 +73,14 @@ export default function PoinList(props) {
           });
         })
         .catch((err) => {
+          const msg = err.response.data.message || "Terjadi Kesalahan";
+          if (msg.includes("a foreign key")) {
+            msg =
+              "Gagal, Harus Menghapus Pertanyaan Pada Poin Tersebut Terlebih Dahulu";
+          }
+          console.log(msg);
           toast.update(toastProses, {
-            render: err.response.data.message,
+            render: msg,
             type: "error",
             isLoading: false,
             autoClose: 2000,

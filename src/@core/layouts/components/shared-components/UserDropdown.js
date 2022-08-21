@@ -30,7 +30,7 @@ const BadgeContentSpan = styled("span")(({ theme }) => ({
 }));
 
 const UserDropdown = () => {
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   // ** States
   const [anchorEl, setAnchorEl] = useState(null);
@@ -108,12 +108,14 @@ const UserDropdown = () => {
                 flexDirection: "column",
               }}
             >
-              <Typography sx={{ fontWeight: 600 }}>Rizki</Typography>
+              <Typography sx={{ fontWeight: 600 }}>
+                {user ? user.nama : ""}
+              </Typography>
               <Typography
                 variant="body2"
                 sx={{ fontSize: "0.8rem", color: "text.disabled" }}
               >
-                Admin
+                Online
               </Typography>
             </Box>
           </Box>

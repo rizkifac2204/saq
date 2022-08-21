@@ -64,7 +64,8 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
 
   if (!user) return <></>;
 
-  if (item.role.includes(user.level))
+  if (item.role.includes(user.level)) {
+    if (item.special && user.level === 3 && !user.pengelola) return <></>;
     return (
       <ListItem
         disablePadding
@@ -129,6 +130,7 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }) => {
         </Link>
       </ListItem>
     );
+  }
 
   return <></>;
 };

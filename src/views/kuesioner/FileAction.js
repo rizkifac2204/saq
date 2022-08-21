@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import IconButton from "@mui/material/IconButton";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
-import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import BackspaceIcon from "@mui/icons-material/Backspace";
 import { styled } from "@mui/material/styles";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
@@ -47,7 +47,7 @@ function FileAction({ disabled, data, setData }) {
     setIsUploading(true);
     const file = e.target.files[0];
     if (!file) return;
-    const filename = `(${data.jawaban_id})_${file.name}`;
+    const filename = `(${data.id})_${file.name}`;
     const formData = new FormData();
     formData.append("file", file, filename);
     axios
@@ -66,7 +66,6 @@ function FileAction({ disabled, data, setData }) {
       )
       .then((res) => {
         toast.success(res.data.message);
-        console.log(res.data);
         setData((prev) => {
           return { ...prev, file: res.data.file };
         });
@@ -138,24 +137,34 @@ function FileAction({ disabled, data, setData }) {
       </>
     );
   return (
-    <>
-      <a
-        href={"/api/services/file/public/upload/" + data.file}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {data.file}
-      </a>
-      <br />
-      <a href={"/api/services/file/public/upload/" + data.file} download>
-        <IconButton>
-          <CloudDownloadIcon />
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+      }}
+    >
+      <Box>
+        <a
+          href={"/api/services/file/public/upload/" + data.file}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Typography variant="body2" gutterBottom mt={2}>
+            {data.file}
+          </Typography>
+        </a>
+      </Box>
+      <Box>
+        <a href={"/api/services/file/public/upload/" + data.file} download>
+          <IconButton>
+            <CloudDownloadIcon />
+          </IconButton>
+        </a>
+        <IconButton title="Delete File" onClick={() => deleteFile(data.file)}>
+          <BackspaceIcon />
         </IconButton>
-      </a>
-      <IconButton title="Delete File" onClick={() => deleteFile(data.file)}>
-        <DeleteIcon />
-      </IconButton>
-    </>
+      </Box>
+    </Box>
   );
 }
 

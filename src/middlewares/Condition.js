@@ -40,13 +40,13 @@ export const conditionFilterPoin = (builder, user) => {
   if (user.level === 3) {
     builder.where("saq_poin.unit", user.provinsi_id);
   }
+  if (user.level === 4) {
+    builder.where(false);
+  }
 };
 
 export const conditionFilterUser = (builder, user) => {
-  if (user.level === 1) {
-    builder.whereNot("user.level", 4);
-  }
-  if (user.level === 2) {
+  if (user.level < 3) {
     builder.whereNot("user.level", 4);
   }
   if (user.level === 3) {
@@ -58,6 +58,9 @@ export const conditionFilterUser = (builder, user) => {
 };
 
 export const conditionFilterKuesioner = (builder, user) => {
+  if (user.level < 3) {
+    builder.where(false);
+  }
   if (user.level === 3) {
     builder.where("saq_poin.unit", `0`);
   }

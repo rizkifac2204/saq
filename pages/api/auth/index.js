@@ -5,8 +5,8 @@ import { serialize } from "cookie";
 
 const isLogin = async (req, res) => {
   try {
-    const { saqBawaslu } = cookie.parse(req.headers.cookie);
-    if (!saqBawaslu) {
+    const { token } = req.body;
+    if (!token) {
       return res
         .setHeader(
           "Set-Cookie",
@@ -18,13 +18,15 @@ const isLogin = async (req, res) => {
         .status(401)
         .json({ message: "Akses Tidak Dikenal" });
     }
-    const decoded = verify(saqBawaslu, process.env.JWT_SECRET_KEY);
+
+    const decoded = verify(token, process.env.JWT_SECRET_KEY);
     const checkUser = await db
       .select(`user.*`, `level.nama_level`)
       .from(`user`)
       .innerJoin(`level`, `user.level`, `level.level`)
       .where(`id`, decoded.id)
       .first();
+
     if (!checkUser)
       return res
         .setHeader(
@@ -38,7 +40,7 @@ const isLogin = async (req, res) => {
         .json({ message: "Akses Tidak Dikenal" });
 
     const preparejwt = {
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 hari
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 30 hari
       id: checkUser.id,
       level: checkUser.level,
       wilayah: checkUser.wilayah,
@@ -49,18 +51,6 @@ const isLogin = async (req, res) => {
       image: null,
     };
 
-    // refresh jwt cookie
-    // const setjwt = sign(preparejwt, process.env.JWT_SECRET_KEY);
-
-    // const serialized = serialize("saqBawaslu", setjwt, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV !== "development",
-    //   sameSite: "strict",
-    //   maxAge: 60 * 60 * 24 * 7,
-    //   path: "/",
-    // });
-
-    // res.setHeader("Set-Cookie", serialized);
     res.json(preparejwt);
   } catch (err) {
     res

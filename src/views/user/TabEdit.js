@@ -103,21 +103,28 @@ const handleSubmit = (values, setDetail, setSubmitting) => {
 const validationSchema = yup.object({
   // required
   nama: yup.string("Masukan Nama").required("Harus Diisi"),
-  wilayah: yup.array().when("level", {
-    is: (level) => level == 2,
-    then: yup.array().min(1, "Pilih Provinsi"),
-    otherwise: yup.array(),
-  }),
-  provinsi_id: yup.number().when("level", {
-    is: (level) => level == 3,
-    then: yup.number().required("Harus Dipilih"),
-    otherwise: yup.number(),
-  }),
-  kabkota_id: yup.number().when("level", {
-    is: (level) => level == 4,
-    then: yup.number().required("Harus Dipilih"),
-    otherwise: yup.number(),
-  }),
+  wilayah: yup
+    .array()
+    .nullable(true)
+    .when("level", {
+      is: (level) => level == 2,
+      then: yup.array().min(1, "Pilih Provinsi"),
+      otherwise: yup.array(),
+    }),
+  provinsi_id: yup
+    .string()
+    .nullable(true)
+    .when("level", {
+      is: (level) => level == 3,
+      then: yup.string().required("Harus Dipilih"),
+    }),
+  kabkota_id: yup
+    .string()
+    .nullable(true)
+    .when("level", {
+      is: (level) => level == 4,
+      then: yup.string().required("Harus Dipilih"),
+    }),
   username: yup.string().required("Username Harus Diisi"),
   passwordBaru: yup.string().required("Password Harus Diisi"),
   passwordConfirm: yup

@@ -1,6 +1,7 @@
 import db from "libs/db";
 import Handler from "middlewares/Handler";
 import { conditionFilterPoin } from "middlewares/Condition";
+import { DeleteUpload } from "middlewares/UploadServices";
 
 export default Handler()
   .get(async (req, res) => {
@@ -79,10 +80,21 @@ export default Handler()
   .delete(async (req, res) => {
     const { poin_id, pertanyaan_id } = req.query;
 
+    const cek = await db
+      .select("file")
+      .from("saq_jawaban")
+      .where("pertanyaan_id", pertanyaan_id);
+
+    const files = cek.map(function (value) {
+      return value.file;
+    });
+
     const proses = await db("saq_pertanyaan").where("id", pertanyaan_id).del();
 
     if (!proses)
       return res.status(400).json({ message: "Gagal Hapus", type: "error" });
+
+    DeleteUpload("./public/upload", files);
 
     res.json({ message: "Berhasil Hapus", type: "success" });
   });

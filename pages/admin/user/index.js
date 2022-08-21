@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -10,26 +10,42 @@ import {
   GridActionsCellItem,
   GridLinkOperator,
 } from "@mui/x-data-grid";
+import LinearProgress from "@mui/material/LinearProgress";
+import Switch from "@mui/material/Switch";
 // ICONS
 import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 // component
+import AuthContext from "context/AuthContext";
 import { CustomToolbar } from "src/views/table/TableComponents";
 
+const ShowKolomkab = (profile) => {
+  if (profile === null || profile.level < 3) return true;
+  return false;
+};
+const ShowKolomAdmin = (profile) => {
+  if (profile === null || profile.level > 2) return true;
+  return false;
+};
+
 function User() {
+  const { user: profile } = useContext(AuthContext);
   const router = useRouter();
   const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get(`/api/user`)
       .then((res) => {
         setUsers(res.data);
       })
-      .catch((err) => {});
+      .catch((err) => {})
+      .then(() => setLoading(false));
   }, []);
 
   const handleDeleteSelected = () => {
@@ -102,6 +118,7 @@ function User() {
           label="Profile"
           onClick={() => router.push("/admin/profile")}
         />,
+        <SwitchAction />,
       ];
     }
     if (values.row.editable) {
@@ -131,6 +148,55 @@ function User() {
     }
   };
 
+  const handleSwitchAdmin = (detail) => {
+    const toastProses = toast.loading("Tunggu Sebentar...", {
+      autoClose: false,
+    });
+    axios
+      .put(`/api/user/${detail.id}/switchAdmin`)
+      .then((res) => {
+        setTimeout(() => {
+          setUsers((prev) =>
+            prev.map((row) => {
+              if (row.id == detail.id)
+                return { ...row, pengelola: res.data.value };
+              return row;
+            })
+          );
+        });
+        toast.update(toastProses, {
+          render: res.data.message,
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      })
+      .catch((err) => {
+        toast.update(toastProses, {
+          render: err.response.data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 2000,
+        });
+      })
+      .then(() => {});
+  };
+
+  const SwitchAction = ({ detail }) => {
+    if (!detail) return <></>;
+    const check = detail.pengelola ? true : false;
+    return (
+      <Switch checked={check} onChange={() => handleSwitchAdmin(detail)} />
+    );
+  };
+
+  const adminColumn = (values) => {
+    if (values.row.level === 3) {
+      return [<SwitchAction detail={values.row} />];
+    }
+    return [];
+  };
+
   const columns = [
     {
       field: "nama_level",
@@ -147,6 +213,12 @@ function User() {
       field: "provinsi",
       headerName: "Provinsi",
       minWidth: 180,
+    },
+    {
+      field: "kabkota",
+      headerName: "Kabupaten/Kota",
+      minWidth: 180,
+      hide: ShowKolomkab(profile),
     },
     {
       field: "telp",
@@ -173,6 +245,15 @@ function User() {
       hide: true,
     },
     {
+      field: "actionsadmin",
+      type: "actions",
+      headerName: "Admin",
+      width: 100,
+      cellClassName: "actions",
+      getActions: (values) => adminColumn(values),
+      hide: ShowKolomAdmin(profile),
+    },
+    {
       field: "actions",
       type: "actions",
       headerName: "Actions",
@@ -186,6 +267,7 @@ function User() {
     <>
       <Card>
         <DataGrid
+          loading={loading}
           autoHeight
           rows={users}
           columns={columns}
@@ -197,6 +279,7 @@ function User() {
           disableSelectionOnClick
           onSelectionModelChange={(itm) => setSelected(itm)}
           components={{
+            LoadingOverlay: LinearProgress,
             Toolbar: CustomToolbar,
           }}
           componentsProps={{

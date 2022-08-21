@@ -10,7 +10,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import Skeleton from "@mui/material/Skeleton";
-// belum dipakai
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
@@ -23,6 +22,7 @@ import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import Rating from "@mui/material/Rating";
 // icon
 import ArrowRight from "@mui/icons-material/ArrowRight";
 import AddIcon from "@mui/icons-material/Add";
@@ -47,7 +47,27 @@ const FireNav = styled(List)({
   },
 });
 
+const labels = {
+  0.5: "Buruk",
+  1: "Buruk+",
+  1.5: "Cukup",
+  2: "Cukup+",
+  2.5: "Kurang Baik",
+  3: "Kurang Baik+",
+  3.5: "Baik",
+  4: "Baik+",
+  4.5: "Sangat Baik",
+  5: "Sangat Baik+",
+};
+
+function getLabelText(value) {
+  return `${value} Star${value !== 1 ? "s" : ""}, ${labels[value]}`;
+}
+
 function PertanyaanList(props) {
+  const [rating, setRating] = useState("3.5");
+  const [hover, setHover] = useState(-1);
+
   const [openForm, setOpenForm] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
   const [detailTemp, setDetailTemp] = useState({});
@@ -62,7 +82,7 @@ function PertanyaanList(props) {
 
   const deletePertanyaan = (id) => {
     const ask = confirm(
-      "Menghapus Poin akan menghapus semua jawaban pada pertanyaan tersebut, lanjutkan?"
+      "Menghapus Poin akan menghapus semua jawaban beserta semua file upload pada pertanyaan tersebut, lanjutkan?"
     );
     if (ask) {
       const toastProses = toast.loading("Tunggu Sebentar...", {
@@ -99,6 +119,24 @@ function PertanyaanList(props) {
 
   return (
     <>
+      <Rating
+        name="simple-controlled"
+        precision={0.5}
+        value={Number(rating)}
+        getLabelText={getLabelText}
+        onChange={(event, newValue) => {
+          setRating(newValue);
+        }}
+        onChangeActive={(event, newHover) => {
+          setHover(newHover);
+        }}
+      />
+      {rating !== null && (
+        <Box sx={{ ml: 2 }}>
+          {labels[hover !== -1 ? hover : Number(rating)]}
+        </Box>
+      )}
+      {JSON.stringify(typeof rating)}
       <Card>
         <FireNav component="nav" disablePadding>
           <ListItem component="div" disablePadding>
@@ -233,7 +271,6 @@ function PertanyaanList(props) {
           </Box>
         </FireNav>
       </Card>
-
       <PertanyaanAdd
         open={openForm}
         poin={poin}
@@ -241,7 +278,6 @@ function PertanyaanList(props) {
         onClose={() => setOpenForm(false)}
         getPertanyaan={getPertanyaan}
       />
-
       <PertanyaanEdit
         open={openEditForm}
         detailTemp={detailTemp}

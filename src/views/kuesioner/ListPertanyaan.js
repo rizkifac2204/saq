@@ -9,7 +9,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import Snackbar from "@mui/material/Snackbar";
 import IconButton from "@mui/material/IconButton";
-import CloseIcon from "@mui/icons-material/Close";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -17,7 +16,12 @@ import FormControl from "@mui/material/FormControl";
 import Alert from "@mui/material/Alert";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
+import InputAdornment from "@mui/material/InputAdornment";
+// ICONS
 import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+import LinkIcon from "@mui/icons-material/Link";
 
 //components
 import FileAction from "views/kuesioner/FileAction";
@@ -198,8 +202,14 @@ const ListPertanyaan = ({ pertanyaan }) => {
             />
           </Grid>
           <Grid item sm={12} md={7}>
-            <Grid container spacing={2}>
-              <Grid item xs>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+              }}
+            >
+              <Box sx={{ mb: 2 }}>
                 <FormControl>
                   <RadioGroup
                     name="jawaban"
@@ -218,58 +228,82 @@ const ListPertanyaan = ({ pertanyaan }) => {
                     />
                   </RadioGroup>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Stack spacing={4}>
-                  <TextField
-                    fullWidth
-                    disabled={typeof data.jawaban === "object"}
-                    label="Keterangan"
-                    variant="outlined"
-                    size="small"
-                    multiline
-                    rows={2}
-                    name="keterangan"
-                    value={data.keterangan ? data.keterangan : ""}
-                    onChange={(event) => handleChange(event)}
-                    onBlur={(event) =>
-                      handleAnswer(event.target.value, "keterangan")
-                    }
-                  />
-                  <TextField
-                    fullWidth
-                    disabled={data.jawaban !== 1}
-                    label="URL"
-                    variant="outlined"
-                    size="small"
-                    name="url"
-                    value={data.url ? data.url : ""}
-                    onChange={(event) => handleChange(event)}
-                    onBlur={(event) => handleAnswer(event.target.value, "url")}
-                  />
-                </Stack>
-              </Grid>
-              <Grid item xs>
-                <Stack
-                  direction="row"
-                  divider={<Divider orientation="vertical" flexItem />}
-                  spacing={2}
+              </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <TextField
+                  fullWidth
+                  disabled={typeof data.jawaban === "object"}
+                  label="Keterangan"
+                  variant="outlined"
+                  size="small"
+                  multiline
+                  rows={2}
+                  name="keterangan"
+                  value={data.keterangan ? data.keterangan : ""}
+                  onChange={(event) => handleChange(event)}
+                  onBlur={(event) =>
+                    handleAnswer(event.target.value, "keterangan")
+                  }
+                  sx={{ mb: 2 }}
+                />
+                <TextField
+                  fullWidth
+                  disabled={data.jawaban !== 1}
+                  label="URL"
+                  variant="outlined"
+                  size="small"
+                  name="url"
+                  value={data.url ? data.url : ""}
+                  onChange={(event) => handleChange(event)}
+                  onBlur={(event) => handleAnswer(event.target.value, "url")}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => {
+                            window.open(data.url, "_blank");
+                          }}
+                          edge="end"
+                        >
+                          {data.url && <LinkIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+              <Box sx={{ flexGrow: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    flexWrap: "wrap",
+                  }}
                 >
-                  <FileAction
-                    disabled={data.jawaban !== 1}
-                    data={data}
-                    setData={setData}
-                  />
-                  <IconButton
-                    aria-label="delete"
-                    disabled={typeof data.jawaban === "object"}
-                    onClick={handleDelete}
+                  <Stack
+                    direction="row"
+                    divider={<Divider orientation="vertical" flexItem />}
+                    spacing={2}
                   >
-                    <DeleteIcon color="error" />
-                  </IconButton>
-                </Stack>
-              </Grid>
-            </Grid>
+                    <FileAction
+                      disabled={data.jawaban !== 1}
+                      data={data}
+                      setData={setData}
+                    />
+                    <IconButton
+                      aria-label="delete"
+                      disabled={typeof data.jawaban === "object"}
+                      onClick={handleDelete}
+                    >
+                      <DeleteIcon
+                        color={typeof data.jawaban == "number" ? "error" : ""}
+                      />
+                    </IconButton>
+                  </Stack>
+                </Box>
+              </Box>
+            </Box>
           </Grid>
         </Grid>
       </ListItem>

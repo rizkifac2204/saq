@@ -58,7 +58,6 @@ const validationSchema = yup.object({
 const LoginPage = () => {
   // ** State
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = (values, setSubmitting) => {
     const toastProses = toast.loading("Tunggu Sebentar...", {
@@ -74,7 +73,7 @@ const LoginPage = () => {
           isLoading: false,
           autoClose: 2000,
         });
-        router.push("/admin");
+        window.open("/admin", "_self");
       })
       .catch((err) => {
         console.log(err.response);
