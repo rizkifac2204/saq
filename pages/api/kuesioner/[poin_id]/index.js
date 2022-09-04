@@ -3,6 +3,7 @@ import Handler from "middlewares/Handler";
 import { conditionFilterKuesioner } from "middlewares/Condition";
 
 export default Handler().get(async (req, res) => {
+  const { id } = req.session.user;
   const { poin_id } = req.query;
 
   const result = await db
@@ -14,11 +15,24 @@ export default Handler().get(async (req, res) => {
   if (!result)
     return res.status(404).json({ message: "Tidak Ditemukan", type: "error" });
 
-  // dapatkan pertanyaan
   const getPertanyaan = await db
+    .select(
+      "saq_pertanyaan.*",
+      { jawaban_id: "saq_jawaban.id" },
+      "saq_jawaban.user_id",
+      "saq_jawaban.jawaban",
+      "saq_jawaban.keterangan",
+      "saq_jawaban.url",
+      "saq_jawaban.file"
+    )
     .from("saq_pertanyaan")
-    .select("*")
-    .where("poin_id", poin_id);
+    .leftJoin("saq_jawaban", function () {
+      this.on("saq_pertanyaan.id", "=", "saq_jawaban.pertanyaan_id");
+      this.andOn("saq_jawaban.user_id", "=", id);
+    })
+    .where("poin_id", poin_id)
+    .orderBy("nomor", "asc");
+
   result.pertanyaan = getPertanyaan;
 
   res.json(result);

@@ -65,6 +65,13 @@ const navigation = () => {
       role: [3, 4],
       special: false,
     },
+    {
+      title: "Result",
+      icon: MenuBookIcon,
+      path: "/admin/kuesioner/result",
+      role: [3, 4],
+      special: false,
+    },
   ];
 };
 

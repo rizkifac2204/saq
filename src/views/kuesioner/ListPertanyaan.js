@@ -26,9 +26,10 @@ import LinkIcon from "@mui/icons-material/Link";
 //components
 import FileAction from "views/kuesioner/FileAction";
 
-const ListPertanyaan = ({ pertanyaan }) => {
+const ListPertanyaan = (props) => {
+  const { data, setData, curPoin } = props;
   // state
-  const [data, setData] = useState(pertanyaan);
+  const [pertanyaan, setPertanyaan] = useState(props.pertanyaan);
   const [statusSnack, setStatusSnack] = useState({
     open: false,
     type: "info",
@@ -52,7 +53,7 @@ const ListPertanyaan = ({ pertanyaan }) => {
     // kondisi jika merubah jawaban menjadi tidak, tapi isian url dan file sudah ada
     if (name === "jawaban") {
       if (!value) {
-        if (data.file || data.url) {
+        if (pertanyaan.file || pertanyaan.url) {
           const ask = confirm("Jawaban Url dan File Akan Direset. Lanjutkan?");
           if (!ask) return;
         }
@@ -60,12 +61,30 @@ const ListPertanyaan = ({ pertanyaan }) => {
     }
 
     // lanjutkan merubah data
-    setData((prev) => {
+    setPertanyaan((prev) => {
       return { ...prev, [name]: value };
     });
 
     // jika ini radio, langsung aksi submit
     if (name === "jawaban") handleAnswer(value, "jawaban");
+  };
+
+  const changeChip = (operator) => {
+    const newData = data.map((item) => {
+      if (item.id === curPoin.id) {
+        return {
+          ...item,
+          statuspertanyaan: {
+            ...item.statuspertanyaan,
+            jumlahTerjawab: operator
+              ? Number(item.statuspertanyaan.jumlahTerjawab) + 1
+              : Number(item.statuspertanyaan.jumlahTerjawab) - 1,
+          },
+        };
+      }
+      return item;
+    });
+    setData(newData);
   };
 
   const handleAnswer = (value, kolom) => {
@@ -98,17 +117,17 @@ const ListPertanyaan = ({ pertanyaan }) => {
         post
       )
       .then((res) => {
-        // tambah kan id jika insert baru
-        if (res.data.id) {
-          setData((prev) => {
-            return { ...prev, pertanyaan_id: res.data.id };
-          });
-        }
-        if (res.data.reset) {
-          setData((prev) => {
-            return { ...prev, file: null, url: null };
-          });
-        }
+        if (res.data.id) changeChip(true);
+        setPertanyaan((prev) => {
+          const old = { ...prev };
+          if (res.data.id) old.jawaban_id = res.data.id;
+          if (res.data.reset) {
+            old.file = null;
+            old.url = null;
+          }
+          return old;
+        });
+
         setStatusSnack({
           ...statusSnack,
           open: true,
@@ -138,16 +157,15 @@ const ListPertanyaan = ({ pertanyaan }) => {
           `/api/kuesioner/${pertanyaan.poin_id}/pertanyaan/${pertanyaan.id}/`
         )
         .then((res) => {
-          setTimeout(() => {
-            setData((prev) => {
-              return {
-                ...prev,
-                pertanyaan_id: null,
-                jawaban: null,
-                url: null,
-                file: null,
-              };
-            });
+          changeChip(false);
+          setPertanyaan((prev) => {
+            return {
+              ...prev,
+              jawaban_id: null,
+              jawaban: null,
+              url: null,
+              file: null,
+            };
           });
           toast.update(toastProses, {
             render: res.data.message,
@@ -213,7 +231,7 @@ const ListPertanyaan = ({ pertanyaan }) => {
                 <FormControl>
                   <RadioGroup
                     name="jawaban"
-                    value={data.jawaban}
+                    value={pertanyaan.jawaban}
                     onChange={(event) => handleChange(event)}
                   >
                     <FormControlLabel
@@ -232,14 +250,14 @@ const ListPertanyaan = ({ pertanyaan }) => {
               <Box sx={{ flexGrow: 1 }}>
                 <TextField
                   fullWidth
-                  disabled={typeof data.jawaban === "object"}
+                  disabled={typeof pertanyaan.jawaban === "object"}
                   label="Keterangan"
                   variant="outlined"
                   size="small"
                   multiline
                   rows={2}
                   name="keterangan"
-                  value={data.keterangan ? data.keterangan : ""}
+                  value={pertanyaan.keterangan ? pertanyaan.keterangan : ""}
                   onChange={(event) => handleChange(event)}
                   onBlur={(event) =>
                     handleAnswer(event.target.value, "keterangan")
@@ -248,12 +266,12 @@ const ListPertanyaan = ({ pertanyaan }) => {
                 />
                 <TextField
                   fullWidth
-                  disabled={data.jawaban !== 1}
+                  disabled={pertanyaan.jawaban !== 1}
                   label="URL"
                   variant="outlined"
                   size="small"
                   name="url"
-                  value={data.url ? data.url : ""}
+                  value={pertanyaan.url ? pertanyaan.url : ""}
                   onChange={(event) => handleChange(event)}
                   onBlur={(event) => handleAnswer(event.target.value, "url")}
                   InputProps={{
@@ -262,11 +280,11 @@ const ListPertanyaan = ({ pertanyaan }) => {
                         <IconButton
                           aria-label="toggle password visibility"
                           onClick={() => {
-                            window.open(data.url, "_blank");
+                            window.open(pertanyaan.url, "_blank");
                           }}
                           edge="end"
                         >
-                          {data.url && <LinkIcon />}
+                          {pertanyaan.url && <LinkIcon />}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -287,17 +305,19 @@ const ListPertanyaan = ({ pertanyaan }) => {
                     spacing={2}
                   >
                     <FileAction
-                      disabled={data.jawaban !== 1}
-                      data={data}
-                      setData={setData}
+                      disabled={pertanyaan.jawaban !== 1}
+                      data={pertanyaan}
+                      setData={setPertanyaan}
                     />
                     <IconButton
                       aria-label="delete"
-                      disabled={typeof data.jawaban === "object"}
+                      disabled={typeof pertanyaan.jawaban === "object"}
                       onClick={handleDelete}
                     >
                       <DeleteIcon
-                        color={typeof data.jawaban == "number" ? "error" : ""}
+                        color={
+                          typeof pertanyaan.jawaban == "number" ? "error" : ""
+                        }
                       />
                     </IconButton>
                   </Stack>

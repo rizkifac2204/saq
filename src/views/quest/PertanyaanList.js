@@ -47,27 +47,7 @@ const FireNav = styled(List)({
   },
 });
 
-const labels = {
-  0.5: "Buruk",
-  1: "Buruk+",
-  1.5: "Cukup",
-  2: "Cukup+",
-  2.5: "Kurang Baik",
-  3: "Kurang Baik+",
-  3.5: "Baik",
-  4: "Baik+",
-  4.5: "Sangat Baik",
-  5: "Sangat Baik+",
-};
-
-function getLabelText(value) {
-  return `${value} Star${value !== 1 ? "s" : ""}, ${labels[value]}`;
-}
-
 function PertanyaanList(props) {
-  const [rating, setRating] = useState("3.5");
-  const [hover, setHover] = useState(-1);
-
   const [openForm, setOpenForm] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
   const [detailTemp, setDetailTemp] = useState({});
@@ -119,24 +99,6 @@ function PertanyaanList(props) {
 
   return (
     <>
-      <Rating
-        name="simple-controlled"
-        precision={0.5}
-        value={Number(rating)}
-        getLabelText={getLabelText}
-        onChange={(event, newValue) => {
-          setRating(newValue);
-        }}
-        onChangeActive={(event, newHover) => {
-          setHover(newHover);
-        }}
-      />
-      {rating !== null && (
-        <Box sx={{ ml: 2 }}>
-          {labels[hover !== -1 ? hover : Number(rating)]}
-        </Box>
-      )}
-      {JSON.stringify(typeof rating)}
       <Card>
         <FireNav component="nav" disablePadding>
           <ListItem component="div" disablePadding>

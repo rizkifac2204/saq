@@ -12,25 +12,25 @@ export default Handler().get(async (req, res) => {
   if (result.length !== 0) {
     for (let i = 0; i < result.length; i++) {
       const pertanyaan = await db
+        .select(
+          "saq_pertanyaan.*",
+          { jawaban_id: "saq_jawaban.id" },
+          "saq_jawaban.user_id",
+          "saq_jawaban.jawaban",
+          "saq_jawaban.keterangan",
+          "saq_jawaban.url",
+          "saq_jawaban.file",
+          "saq_jawaban.nilai"
+        )
         .from("saq_pertanyaan")
-        .count("saq_pertanyaan.id as jumlah")
-        .where("poin_id", result[i].id)
-        .first();
-
-      const terjawab = await db
-        .from("saq_jawaban")
-        .count("saq_jawaban.id as jumlah")
-        .innerJoin("saq_pertanyaan", function () {
+        .leftJoin("saq_jawaban", function () {
           this.on("saq_pertanyaan.id", "=", "saq_jawaban.pertanyaan_id");
-          this.andOn("saq_pertanyaan.poin_id", "=", result[i].id);
+          this.andOn("saq_jawaban.user_id", "=", id);
         })
-        .where("saq_jawaban.user_id", id)
-        .first();
+        .where("poin_id", result[i].id)
+        .orderBy("nomor", "asc");
 
-      result[i].statuspertanyaan = {
-        jumlahPertanyaan: pertanyaan.jumlah || 0,
-        jumlahTerjawab: terjawab.jumlah || 0,
-      };
+      result[i].pertanyaan = pertanyaan;
     }
   }
 

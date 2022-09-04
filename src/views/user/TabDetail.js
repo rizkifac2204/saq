@@ -201,10 +201,12 @@ const TabDetail = (props) => {
           >
             Hapus
           </Button>
-          {detail.level === 3 && (
+          {detail.level > 2 ? (
             <Button variant="contained" color="info" size="small">
               Lihat Jawaban
             </Button>
+          ) : (
+            <></>
           )}
         </Box>
       </CardContent>
