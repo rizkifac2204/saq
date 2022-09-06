@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import axios from "axios";
 import { toast } from "react-toastify";
 //MUI
@@ -18,23 +19,6 @@ import GradeIcon from "@mui/icons-material/Grade";
 import ListPertanyaanResult from "src/views/kuesioner/result/ListPertanyaanResult";
 import CardStats from "views/kuesioner/result/CardStats";
 import StatisticsCard from "views/kuesioner/result/StatisticsCard";
-
-const labels = {
-  0.5: "Buruk",
-  1: "Buruk+",
-  1.5: "Cukup",
-  2: "Cukup+",
-  2.5: "Kurang Baik",
-  3: "Kurang Baik+",
-  3.5: "Baik",
-  4: "Baik+",
-  4.5: "Sangat Baik",
-  5: "Sangat Baik+",
-};
-
-function getLabelText(value) {
-  return `${value} Star${value !== 1 ? "s" : ""}, ${labels[value]}`;
-}
 
 const ListPoin = (props) => {
   const { poin } = props;
@@ -58,10 +42,11 @@ const ListPoin = (props) => {
   );
 };
 
-export default function Result() {
-  const [rating, setRating] = useState("0");
-  const [hover, setHover] = useState(-1);
+function UserResult() {
+  const router = useRouter();
+  const { id } = router.query;
   const [isLoading, setIsLoading] = useState(false);
+  const [detail, setDetail] = useState({});
   const [data, setData] = useState([]);
   const [total, setTotal] = useState({
     poin: 0,
@@ -242,10 +227,10 @@ export default function Result() {
     getTotalGrade(array);
   };
 
-  function getKuesioner() {
+  function getKuesioner(user_id) {
     setIsLoading(true);
     axios
-      .get(`/api/kuesioner/result`)
+      .get(`/api/user/${user_id}/result`)
       .then((res) => {
         setData(res.data);
         settingTotal(res.data);
@@ -257,28 +242,25 @@ export default function Result() {
   }
 
   useEffect(() => {
-    getKuesioner();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (id) {
+      axios
+        .get(`/api/user/${id}`)
+        .then((res) => {
+          setDetail(res.data);
+          getKuesioner(res.data.id);
+        })
+        .catch((err) => {
+          toast.error(err.response.data.message);
+          setTimeout(() => router.push("/admin/user"), 1000);
+        });
+    }
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // MULAI DARI SINI
+  // GRADE PADA SETIAP PERTANYAAN DIEDIT OLEH ADMIN DAN AKAN MERUBAH NILAI
 
   return (
     <>
-      <Rating
-        name="simple-controlled"
-        precision={0.5}
-        value={Number(rating)}
-        getLabelText={getLabelText}
-        onChange={(event, newValue) => {
-          setRating(newValue);
-        }}
-        onChangeActive={(event, newHover) => {
-          setHover(newHover);
-        }}
-      />
-      {rating !== null && (
-        <Box sx={{ ml: 2 }}>
-          {labels[hover !== -1 ? hover : Number(rating)]}
-        </Box>
-      )}
       <Grid container spacing={3} mb={2}>
         <Grid item xs={6} md={3}>
           <CardStats
@@ -337,3 +319,5 @@ export default function Result() {
     </>
   );
 }
+
+export default UserResult;

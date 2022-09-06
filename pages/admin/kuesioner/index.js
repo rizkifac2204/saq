@@ -71,7 +71,7 @@ export default function Kuesioner() {
         .get(`/api/kuesioner`)
         .then((res) => {
           setData(res.data);
-          getCurrentPoin(res.data[0].id);
+          if (res.data.length !== 0) getCurrentPoin(res.data[0].id);
         })
         .catch((err) => {
           toast.error("Terjadi Kesalahan");

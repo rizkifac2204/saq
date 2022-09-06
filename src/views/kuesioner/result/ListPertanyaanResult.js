@@ -1,13 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
-import validator from "validator";
 //MUI
 import Grid from "@mui/material/Grid";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import Snackbar from "@mui/material/Snackbar";
 import IconButton from "@mui/material/IconButton";
-import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -16,7 +12,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Rating from "@mui/material/Rating";
 // ICONS
-import CloseIcon from "@mui/icons-material/Close";
 import DoNotDisturbIcon from "@mui/icons-material/DoNotDisturb";
 import LinkIcon from "@mui/icons-material/Link";
 import LinkOffIcon from "@mui/icons-material/LinkOff";
@@ -39,9 +34,9 @@ const labels = {
 const DisplayJawaban = ({ val }) => {
   const display =
     val == 1 ? (
-      <Chip label="Ya" variant="outlined" color="success" />
+      <Chip label="Ya" color="success" />
     ) : (
-      <Chip label="Tidak" variant="outlined" color="error" />
+      <Chip label="Tidak" color="error" />
     );
   if (val == null) return <DoNotDisturbIcon color="error" />;
   return display;

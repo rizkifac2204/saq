@@ -1,3 +1,4 @@
+import Link from "next/link";
 // ** MUI Imports
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
@@ -202,9 +203,11 @@ const TabDetail = (props) => {
             Hapus
           </Button>
           {detail.level > 2 ? (
-            <Button variant="contained" color="info" size="small">
-              Lihat Jawaban
-            </Button>
+            <Link href={`/admin/user/${detail.id}/result`}>
+              <Button variant="contained" color="info" size="small">
+                Lihat Jawaban
+              </Button>
+            </Link>
           ) : (
             <></>
           )}

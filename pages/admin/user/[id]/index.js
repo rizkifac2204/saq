@@ -42,7 +42,7 @@ const TabName = styled("span")(({ theme }) => ({
   },
 }));
 
-const AccountSettings = () => {
+const UserDetail = () => {
   // ** State
   const router = useRouter();
   const [detail, setDetail] = useState({});
@@ -148,4 +148,4 @@ const AccountSettings = () => {
   );
 };
 
-export default AccountSettings;
+export default UserDetail;
